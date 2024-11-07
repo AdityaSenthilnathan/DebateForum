@@ -1,7 +1,4 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
-  "rules": {
-    "react/no-unescaped-entities": "off", // Disable this specific linting rule
-    "@typescript-eslint/no-empty-object-type": "off" // Disable this linting rule
-  }
+  "extends": ["next/core-web-vitals", "next/typescript"]
+  
 }
