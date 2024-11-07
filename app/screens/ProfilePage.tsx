@@ -41,7 +41,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold mb-6">{userStats.name}'s Profile</h2>
+      <h2 className="text-3xl font-bold mb-6">{userStats.name}&apos Profile</h2>
       <p>Posts: {userStats.posts}</p>
       <p>Comments: {userStats.comments}</p>
       <p>Questions Answered: {userStats.answered}</p>
