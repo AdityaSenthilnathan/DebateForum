@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig'; // Adjust the path according to your project structure
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { AuthProvider } from '../authContext';
 import { useAuth } from '../authContext';
+
 
 const ForumPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -39,6 +41,7 @@ const ForumPage: React.FC = () => {
   };
 
   return (
+    <AuthProvider>
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">{forumType} Forum</h2>
       <div>
@@ -71,6 +74,7 @@ const ForumPage: React.FC = () => {
         ))}
       </ul>
     </div>
+    </AuthProvider>
   );
 };
 

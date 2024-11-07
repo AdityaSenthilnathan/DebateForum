@@ -1,22 +1,42 @@
-// components/ProfilePage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../firebaseConfig'; // Adjust the path according to your project structure
+import { db } from '../firebaseConfig';
 import { doc, onSnapshot } from 'firebase/firestore';
+
+interface UserStats {
+  name: string;
+  posts: number;
+  comments: number;
+  answered: number;
+}
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const [userStats, setUserStats] = useState<any>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'users', userId), (doc) => {
-      setUserStats(doc.data());
+      if (doc.exists()) {
+        setUserStats(doc.data() as UserStats);
+        setLoading(false);
+      } else {
+        setError("User not found");
+        setLoading(false);
+      }
+    }, (error) => {
+      console.error("Error fetching user data: ", error);
+      setError("Error fetching user data");
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, [userId]);
 
-  if (!userStats) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+  if (!userStats) return <div>No user data available</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
