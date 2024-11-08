@@ -1,40 +1,36 @@
 "use client";
 
 import React from 'react';
-import { AuthProvider } from './authContext'; // Import AuthProvider
-import Layout from './layout'; // Layout component
-import SignIn from './screens/SignIn'; // SignIn component
-import ForumPage from './screens/ForumPage'; // ForumPage component
-import { useAuth } from './authContext'; // useAuth hook to access auth state
-
-const Page: React.FC = () => {
-  return (
-    <AuthProvider> {/* Wrap your entire app here */}
-      <Layout>
-        <MainContent />
-      </Layout>
-    </AuthProvider>
-  );
-};
+import { AuthProvider, useAuth } from './authContext'; // Import useAuth hook
+import SignIn from './screens/SignIn'; // Import SignIn component
+import ForumPage from './screens/ForumPage'; // Import ForumPage component
 
 const MainContent: React.FC = () => {
   const { currentUser, loading, setCurrentUser } = useAuth(); // Access auth state and updater
 
   if (loading) return <div>Loading...</div>; // Show loading while fetching auth state
 
-  // Handle sign-in logic after successful sign-in
-  const handleSignIn = () => {
-    setCurrentUser(true); // Update currentUser state (you can replace `true` with actual user info if needed)
-  };
-
   return (
     <>
       {!currentUser ? (
-        <SignIn onSignIn={handleSignIn} /> // Pass handleSignIn to SignIn component
+        <SignIn
+          onSignIn={() => {
+            // Simulate setting user after successful sign-in (you would replace this with your auth logic)
+            setCurrentUser({ id: '123', name: 'User' }); // Example user data
+          }}
+        />
       ) : (
-        <ForumPage /> // Show ForumPage if the user is authenticated
+        <ForumPage />
       )}
     </>
+  );
+};
+
+const Page: React.FC = () => {
+  return (
+    <AuthProvider>
+      <MainContent />
+    </AuthProvider>
   );
 };
 
