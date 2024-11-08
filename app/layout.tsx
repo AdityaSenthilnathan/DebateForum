@@ -2,8 +2,9 @@
 "use client";
 import './globals.css';
 import React from 'react';
-import { AuthProvider, useAuth } from './authContext';
-import SignIn from './screens/SignIn';
+import { AuthProvider } from './authContext'; // Import AuthProvider
+import SignIn from './screens/SignIn'; // Import SignIn component
+import { useAuth } from './authContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -29,14 +30,7 @@ const AuthContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // If the user is not logged in, show the SignIn screen
   if (!currentUser) {
-    return (
-      <SignIn
-        onSignIn={() => {
-          // Handle the sign-in process here
-          console.log('User signed in');
-        }}
-      />
-    );
+    return <SignIn />;
   }
 
   // If the user is logged in, display the children components (app content)

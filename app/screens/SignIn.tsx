@@ -1,4 +1,5 @@
-'use client';
+// SignIn.tsx
+"use client";
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
@@ -10,11 +11,7 @@ import { FaGoogle } from 'react-icons/fa';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
 
-interface SignInProps {
-  onSignIn: () => void; // Add onSignIn to props
-}
-
-export default function SignIn({ onSignIn }: SignInProps) {
+export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(''); // State for error messages
@@ -27,9 +24,9 @@ export default function SignIn({ onSignIn }: SignInProps) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Successfully signed in with email/password');
-      onSignIn(); // Trigger onSignIn after successful login
+      // Redirect user to the appropriate page after successful login
     } catch (error) {
-      setError('Failed to sign in with email/password. Please check your credentials.'); // Handle error
+      setError('Failed to sign in with email/password. Please check your credentials.');
       console.error('Error signing in with email/password:', error);
     }
   };
@@ -39,7 +36,7 @@ export default function SignIn({ onSignIn }: SignInProps) {
     try {
       await signInWithPopup(auth, googleProvider);
       console.log('Successfully signed in with Google');
-      onSignIn(); // Trigger onSignIn after successful login
+      // Redirect user to the appropriate page after successful login
     } catch (error) {
       setError('Failed to sign in with Google. Please try again later.');
       console.error('Error signing in with Google:', error);
@@ -96,7 +93,7 @@ export default function SignIn({ onSignIn }: SignInProps) {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
-            Don&apost; have an account?{" "}
+            Don&apos;t have an account?{" "}
             <a href="#" className="text-blue-500 hover:underline">
               Sign up
             </a>
