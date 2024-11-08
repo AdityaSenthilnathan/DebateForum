@@ -1,7 +1,6 @@
-// app/page.tsx or app/layout.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthProvider } from './authContext'; // Import AuthProvider
 import Layout from './layout'; // Layout component
 import SignIn from './screens/SignIn'; // SignIn component
@@ -19,20 +18,23 @@ const Page: React.FC = () => {
 };
 
 const MainContent: React.FC = () => {
-  const { currentUser, loading } = useAuth(); // Now you can safely use useAuth
+  const { currentUser, loading, setCurrentUser } = useAuth(); // Access auth state and updater
 
   if (loading) return <div>Loading...</div>; // Show loading while fetching auth state
 
+  // Handle sign-in logic after successful sign-in
+  const handleSignIn = () => {
+    setCurrentUser(true); // Update currentUser state (you can replace `true` with actual user info if needed)
+  };
+
   return (
-    <AuthProvider>
+    <>
       {!currentUser ? (
-        <SignIn onSignIn={function (): void {
-          throw new Error('Function not implemented.');
-        } } /> // Show SignIn if no user is authenticated
+        <SignIn onSignIn={handleSignIn} /> // Pass handleSignIn to SignIn component
       ) : (
         <ForumPage /> // Show ForumPage if the user is authenticated
       )}
-    </AuthProvider>
+    </>
   );
 };
 

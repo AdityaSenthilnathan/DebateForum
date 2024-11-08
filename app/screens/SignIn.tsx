@@ -1,46 +1,50 @@
 'use client';
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FaGoogle } from 'react-icons/fa'
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../firebaseConfig'
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FaGoogle } from 'react-icons/fa';
+import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../firebaseConfig';
 
-export default function SignIn() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('') // State for error messages
+interface SignInProps {
+  onSignIn: () => void; // Add onSignIn to props
+}
+
+export default function SignIn({ onSignIn }: SignInProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(''); // State for error messages
 
   // Handle sign in with email and password
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('') // Reset error message on submit
+    e.preventDefault();
+    setError(''); // Reset error message on submit
 
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      console.log('Successfully signed in with email/password')
-      // Redirect user to the appropriate page after successful login
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Successfully signed in with email/password');
+      onSignIn(); // Trigger onSignIn after successful login
     } catch (error) {
-      setError('Failed to sign in with email/password. Please check your credentials.') // Handle error
-      console.error('Error signing in with email/password:', error)
+      setError('Failed to sign in with email/password. Please check your credentials.'); // Handle error
+      console.error('Error signing in with email/password:', error);
     }
-  }
+  };
 
   // Handle Google sign in
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider)
-      console.log('Successfully signed in with Google')
-      // Redirect user to the appropriate page after successful login
+      await signInWithPopup(auth, googleProvider);
+      console.log('Successfully signed in with Google');
+      onSignIn(); // Trigger onSignIn after successful login
     } catch (error) {
-      setError('Failed to sign in with Google. Please try again later.')
-      console.error('Error signing in with Google:', error)
+      setError('Failed to sign in with Google. Please try again later.');
+      console.error('Error signing in with Google:', error);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -92,7 +96,7 @@ export default function SignIn() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
-            Don&apost have an account?{" "}
+            Don't have an account?{" "}
             <a href="#" className="text-blue-500 hover:underline">
               Sign up
             </a>
@@ -100,5 +104,5 @@ export default function SignIn() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
