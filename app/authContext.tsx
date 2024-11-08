@@ -1,14 +1,14 @@
-// authContext.tsx
+// app/authContext.tsx
 "use client";
-
 import { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, User, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, User, signOut as firebaseSignOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>; // To update the current user
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,12 +22,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(user);
       setLoading(false);
     });
-
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
+  const signIn = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error('Sign in error:', error);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ currentUser, loading, setCurrentUser }}>
+    <AuthContext.Provider value={{ currentUser, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -39,18 +54,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
-
-// Update display name function
-export const updateUserName = async (newName: string) => {
-  const { currentUser } = useAuth(); // Assuming you're inside a component that has the current user
-
-  if (currentUser) {
-    try {
-      await updateProfile(currentUser, { displayName: newName });
-      console.log('Display name updated successfully');
-    } catch (error) {
-      console.error('Error updating display name:', error);
-    }
-  }
 };
