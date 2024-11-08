@@ -8,16 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth'
 
 export default function DebateForum() {
   const [currentPage, setCurrentPage] = useState('home')
   const [currentForum, setCurrentForum] = useState('') // Ensure this is set before rendering ForumPage
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<any[]>([]) // Use a proper type for posts, change 'any' to the correct post type later
   const [newPost, setNewPost] = useState({ title: '', content: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [user, setUser] = useState(null) // State to hold the logged-in user
+  const [user, setUser] = useState<User | null>(null) // State to hold the logged-in user, typed as User | null
 
   // Handle authentication state change
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function DebateForum() {
     return unsubscribe
   }, [])
 
-  // Sign In Function
-  const handleSignIn = async (email, password) => {
+  // Sign In Function (typed parameters)
+  const handleSignIn = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password)
     } catch (error) {
@@ -61,8 +61,8 @@ export default function DebateForum() {
         setPosts(fetchedPosts)
         console.log("Fetched posts:", fetchedPosts);  // Debugging: Log posts data
       }, (error) => {
-        console.error('Error fetching posts:', error);
-        setError('Failed to fetch posts.');
+        console.error('Error fetching posts:', error)
+        setError('Failed to fetch posts.')
       })
 
       return unsubscribe
@@ -94,7 +94,7 @@ export default function DebateForum() {
   }
 
   // Navigation function to switch pages
-  const navigateTo = (page) => {
+  const navigateTo = (page: string) => {
     console.log("Attempting to navigate to:", page);
     if (['home', 'forums', 'forum'].includes(page)) {
       setCurrentPage(page);
@@ -105,7 +105,7 @@ export default function DebateForum() {
   }
 
   // Navigation function to switch forums
-  const handleForumNavigation = (forum) => {
+  const handleForumNavigation = (forum: string) => {
     console.log("Navigating to forum:", forum);
     if (forum) {
       setCurrentForum(forum); // Make sure this is set before navigating
