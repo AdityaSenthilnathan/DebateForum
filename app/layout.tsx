@@ -29,7 +29,14 @@ const AuthContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // If the user is not logged in, show the SignIn screen
   if (!currentUser) {
-    return <SignIn />;
+    return (
+      <SignIn
+        onSignIn={() => {
+          // Handle the sign-in process here
+          console.log('User signed in');
+        }}
+      />
+    );
   }
 
   // If the user is logged in, display the children components (app content)
