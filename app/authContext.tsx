@@ -1,35 +1,42 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+"use client";
 
-type AuthContextType = {
-  currentUser: any; // Type it based on your user data structure
-  setCurrentUser: React.Dispatch<React.SetStateAction<any>>; // Function to set currentUser
-  loading: boolean;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>; // Function to set loading state
-};
+import { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth'; // Ensure correct import from Firebase
+import { auth } from './firebaseConfig';
+
+// Define the AuthContextType properly
+interface AuthContextType {
+  currentUser: User | null;  // Current user can either be a User or null
+  loading: boolean;           // Loading state for when auth state is being fetched
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<any>(null); // Replace 'any' with your user type
-  const [loading, setLoading] = useState<boolean>(true);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // User or null
+  const [loading, setLoading] = useState<boolean>(true);  // Track loading state
 
-  // Example: Simulating user authentication
-  React.useEffect(() => {
-    // Replace this with your actual authentication logic, e.g., Firebase
-    setLoading(false); // Set loading to false after fetching user state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);  // Set the user when auth state changes
+      setLoading(false);      // Set loading to false after state is fetched
+    });
+
+    return () => unsubscribe(); // Cleanup on component unmount
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser, loading, setLoading }}>
-      {children}
+    <AuthContext.Provider value={{ currentUser, loading }}>
+      {children}  {/* Pass down children components */}
     </AuthContext.Provider>
   );
 };
 
+// Custom hook to access auth context state
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
