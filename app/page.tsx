@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { AuthProvider } from './authContext'; // Import AuthProvider
 import Layout from './layout'; // Layout component
 import SignIn from './screens/SignIn'; // SignIn component
