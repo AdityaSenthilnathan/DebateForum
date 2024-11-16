@@ -1,46 +1,53 @@
-// SignIn.tsx
-"use client";
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FaGoogle } from 'react-icons/fa';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
+import SignUpModal from './SignUpModal'; // Import the SignUpModal component
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // State for error messages
+  const [error, setError] = useState('');
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false); // Manage modal visibility
 
-  // Handle sign in with email and password
+  // Handle Sign In with Email/Password
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Reset error message on submit
-
+    setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Successfully signed in with email/password');
-      // Redirect user to the appropriate page after successful login
+      // You can redirect the user after successful login here
     } catch (error) {
       setError('Failed to sign in with email/password. Please check your credentials.');
       console.error('Error signing in with email/password:', error);
     }
   };
 
-  // Handle Google sign in
+  // Handle Sign In with Google
   const handleGoogleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
       console.log('Successfully signed in with Google');
-      // Redirect user to the appropriate page after successful login
+      // You can redirect the user after successful login here
     } catch (error) {
       setError('Failed to sign in with Google. Please try again later.');
       console.error('Error signing in with Google:', error);
     }
+  };
+
+  // Open Sign Up Modal
+  const openSignUpModal = () => {
+    setIsSignUpModalOpen(true);  // Set the modal state to open
+  };
+
+  // Close Sign Up Modal
+  const closeSignUpModal = () => {
+    setIsSignUpModalOpen(false); // Set the modal state to closed
   };
 
   return (
@@ -58,7 +65,7 @@ export default function SignIn() {
             </TabsList>
             <TabsContent value="email">
               <form onSubmit={handleSignIn} className="space-y-4">
-                {error && <p className="text-red-500">{error}</p>} {/* Display error if exists */}
+                {error && <p className="text-red-500">{error}</p>}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -84,8 +91,7 @@ export default function SignIn() {
               </form>
             </TabsContent>
             <TabsContent value="google">
-              <Button onClick={handleGoogleSignIn} className="w-full" variant="outline">
-                <FaGoogle className="mr-2" />
+              <Button onClick={handleGoogleSignIn} className="w-full mt-4" variant="outline">
                 Sign in with Google
               </Button>
             </TabsContent>
@@ -94,12 +100,15 @@ export default function SignIn() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
             Don&apos;t have an account?{" "}
-            <a href="#" className="text-blue-500 hover:underline">
+            <button onClick={openSignUpModal} className="text-blue-500 hover:underline">
               Sign up
-            </a>
+            </button>
           </p>
         </CardFooter>
       </Card>
+
+      {/* Conditionally render the SignUpModal */}
+      {isSignUpModalOpen && <SignUpModal onClose={closeSignUpModal} />}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import '../globals.css'
 import { useState, useEffect } from 'react'
@@ -8,50 +8,43 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth'
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: { seconds: number }; // Firestore timestamp format
+}
 
 export default function DebateForum() {
-  const [currentPage, setCurrentPage] = useState('home')
-  const [currentForum, setCurrentForum] = useState('') // Ensure this is set before rendering ForumPage
-  const [posts, setPosts] = useState<any[]>([]) // Use a proper type for posts, change 'any' to the correct post type later
-  const [newPost, setNewPost] = useState({ title: '', content: '' })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [user, setUser] = useState<User | null>(null) // State to hold the logged-in user, typed as User | null
+  const [currentPage, setCurrentPage] = useState<string>('home')
+  const [currentForum, setCurrentForum] = useState<string>('') // Forum selected
+  const [posts, setPosts] = useState<Post[]>([]) // Typed posts state
+  const [newPost, setNewPost] = useState<{ title: string; content: string }>({ title: '', content: '' })
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [user, setUser] = useState<User | null>(null) // User authentication state
 
-  // Handle authentication state change
+  // Fetch the user authentication status on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user) // Set user if logged in, null if not
+      setUser(user) // Set the user or null if logged out
     })
-    return unsubscribe
+    return unsubscribe // Cleanup on component unmount
   }, [])
 
-  // Sign In Function (typed parameters)
+  // Handle user sign-in
   const handleSignIn = async (email: string, password: string) => {
     try {
-      if (!email || !password) {
-        throw new Error('Email and password must be provided')
-      }
       await signInWithEmailAndPassword(auth, email, password)
-    } catch (error: any) {
-      console.error('Error signing in:', error.message)
+    } catch (error) {
+      console.error('Error signing in:', error)
       setError('Failed to sign in. Please check your credentials.')
     }
   }
 
-  // Sign In with Google Function
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider()
-    try {
-      await signInWithPopup(auth, provider)
-    } catch (error: any) {
-      console.error('Error signing in with Google:', error.message)
-      setError('Failed to sign in with Google. Please try again later.')
-    }
-  }
-
-  // Sign Out Function
+  // Handle user sign-out
   const handleSignOut = async () => {
     try {
       await signOut(auth)
@@ -61,19 +54,20 @@ export default function DebateForum() {
     }
   }
 
-  // Fetch posts from Firestore
+  // Fetch posts from Firestore when currentForum changes
   useEffect(() => {
     if (currentForum) {
       const postsRef = collection(db, 'forums', currentForum, 'posts')
       const q = query(postsRef)
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        const fetchedPosts = snapshot.docs.map(doc => ({
+        const fetchedPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
-        }))
+          ...doc.data(),
+        })) as Post[] // Cast to Post type
+
         setPosts(fetchedPosts)
-        console.log("Fetched posts:", fetchedPosts);  // Debugging: Log posts data
+        console.log("Fetched posts:", fetchedPosts) // For debugging
       }, (error) => {
         console.error('Error fetching posts:', error)
         setError('Failed to fetch posts.')
@@ -83,7 +77,7 @@ export default function DebateForum() {
     }
   }, [currentForum])
 
-  // Handle creating a new post
+  // Handle post submission
   const handlePostSubmit = async () => {
     if (!newPost.title || !newPost.content) {
       setError('Both title and content are required.')
@@ -96,10 +90,10 @@ export default function DebateForum() {
       await addDoc(postsRef, {
         title: newPost.title,
         content: newPost.content,
-        createdAt: new Date()
+        createdAt: new Date(),
       })
-      setNewPost({ title: '', content: '' }) // Reset form
-      setError('') // Clear any error messages
+      setNewPost({ title: '', content: '' }) // Reset form after successful submission
+      setError('') // Clear error
     } catch (error) {
       console.error('Error adding post:', error)
       setError('Failed to add the post. Please try again later.')
@@ -107,29 +101,22 @@ export default function DebateForum() {
     setLoading(false)
   }
 
-  // Navigation function to switch pages
+  // Handle navigation between pages
   const navigateTo = (page: string) => {
-    console.log("Attempting to navigate to:", page);
-    if (['home', 'forums', 'forum'].includes(page)) {
-      setCurrentPage(page);
-      console.log("Navigated to:", page);
-    } else {
-      console.error(`Invalid page: ${page}`);
-    }
+    setCurrentPage(page)
   }
 
-  // Navigation function to switch forums
+  // Handle forum selection and navigation
   const handleForumNavigation = (forum: string) => {
-    console.log("Navigating to forum:", forum);
     if (forum) {
-      setCurrentForum(forum); // Make sure this is set before navigating
-      navigateTo('forum');
+      setCurrentForum(forum)
+      navigateTo('forum')
     } else {
-      console.error('No valid forum selected.');
+      console.error('No valid forum selected.')
     }
   }
 
-  // Home Page Component
+  // Home page UI
   const HomePage = () => (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-6 text-center">Debate Skills Improvement Forum</h1>
@@ -157,16 +144,13 @@ export default function DebateForum() {
             <Button onClick={() => handleSignIn('testuser@example.com', 'password123')} className="mt-4">
               Sign In (Test User)
             </Button>
-            <Button onClick={handleGoogleSignIn} className="mt-4">
-              Sign In with Google
-            </Button>
           </>
         )}
       </div>
     </div>
   )
 
-  // Forums Page Component
+  // Forums page UI (lists forums)
   const ForumsPage = () => (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">Debate Forums</h2>
@@ -187,10 +171,10 @@ export default function DebateForum() {
     </div>
   )
 
-  // Forum Page Component to display posts and add new post
+  // Forum page UI (displays posts and new post form)
   const ForumPage = () => {
     if (!currentForum) {
-      return <div>Please select a forum to enter.</div>;  // Show message if no forum is selected
+      return <div>Please select a forum to enter.</div>
     }
 
     return (
@@ -202,9 +186,9 @@ export default function DebateForum() {
             value={newPost.title}
             onChange={(e) => {
               setNewPost((prevPost) => ({
-                ...prevPost, // Preserve the other properties in the state
-                title: e.target.value // Update only the title
-              }));
+                ...prevPost,
+                title: e.target.value,
+              }))
             }}
             placeholder="Title of your question"
           />
@@ -212,9 +196,9 @@ export default function DebateForum() {
             value={newPost.content}
             onChange={(e) => {
               setNewPost((prevPost) => ({
-                ...prevPost, // Preserve the other properties in the state
-                content: e.target.value // Update only the content
-              }));
+                ...prevPost,
+                content: e.target.value,
+              }))
             }}
             placeholder="Provide details about your question..."
           />
@@ -243,10 +227,20 @@ export default function DebateForum() {
   }
 
   return (
-    <div>
-      {currentPage === 'home' && <HomePage />}
-      {currentPage === 'forums' && <ForumsPage />}
-      {currentPage === 'forum' && <ForumPage />}
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <nav className="container mx-auto px-4 py-4">
+          <ul className="flex space-x-4">
+            <li><Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button></li>
+            <li><Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button></li>
+          </ul>
+        </nav>
+      </header>
+      <main>
+        {currentPage === 'home' && <HomePage />}
+        {currentPage === 'forums' && <ForumsPage />}
+        {currentPage === 'forum' && <ForumPage />}
+      </main>
     </div>
   )
 }
