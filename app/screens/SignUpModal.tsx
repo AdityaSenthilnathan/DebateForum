@@ -2,14 +2,18 @@ import { useState } from "react";
 import { auth } from "../firebaseConfig"; // Assuming your Firebase setup is in `firebase.js`
 import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 
-const SignUpModal = () => {
+interface SignUpModalProps {
+  onClose: () => void; // Accepting the onClose prop
+}
+
+const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [verificationSent, setVerificationSent] = useState(false);
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -24,10 +28,19 @@ const SignUpModal = () => {
       // Sign out user immediately after sending the verification email
       await signOut(auth);
 
-      // Prompt user to check their email
+      // Set verification sent flag
       setVerificationSent(true);
+
+      // Optionally, close the modal after successful signup
+      setTimeout(() => {
+        onClose(); // Close the modal after some time (optional)
+      }, 2000); // 2-second delay before closing
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message); // Access the error message if it's an instance of Error
+      } else {
+        setError("An unknown error occurred."); // Fallback for unknown error types
+      }
     }
   };
 
