@@ -6,12 +6,12 @@ interface SignUpModalProps {
   onClose: () => void; // Accepting the onClose prop
 }
 
-const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
+const SignUpModal: React.FC<SignUpModalProps> = () => {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   //const [verificationSent, setVerificationSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
