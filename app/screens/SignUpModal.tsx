@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { auth } from "../firebaseConfig"; // Assuming your Firebase setup is in `firebase.js`
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+//import { auth } from "../firebaseConfig"; // Assuming your Firebase setup is in `firebase.js`
+//import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { registerUser } from "@/Authentication/EmailAuth";
 interface SignUpModalProps {
   onClose: () => void; // Accepting the onClose prop
@@ -12,7 +12,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [verificationSent, setVerificationSent] = useState(false);
+  //const [verificationSent, setVerificationSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -15,6 +15,7 @@ interface Post {
   title: string;
   content: string;
   createdAt: { seconds: number }; // Firestore timestamp format
+  userName: string;
 }
 
 export default function DebateForum() {
@@ -83,6 +84,7 @@ export default function DebateForum() {
         title: titleRef.current.value,
         content: contentRef.current.value,
         createdAt: new Date(),
+        userName: user?.displayName || user?.email || 'Anonymous',
       })
       titleRef.current.value = '' // Reset title after successful submission
       contentRef.current.value = '' // Reset content after successful submission
@@ -195,6 +197,7 @@ export default function DebateForum() {
               <Card key={post.id}>
                 <CardHeader>
                   <CardTitle>{post.title}</CardTitle>
+                  <p className="text-sm text-gray-500">Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}</p>
                 </CardHeader>
                 <CardContent>{post.content}</CardContent>
               </Card>
