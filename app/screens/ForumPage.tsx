@@ -1,7 +1,7 @@
 "use client"
 
 import '../globals.css'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,10 +21,12 @@ export default function DebateForum() {
   const [currentPage, setCurrentPage] = useState<string>('home')
   const [currentForum, setCurrentForum] = useState<string>('') // Forum selected
   const [posts, setPosts] = useState<Post[]>([]) // Typed posts state
-  const [newPost, setNewPost] = useState<{ title: string; content: string }>({ title: '', content: '' })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [user, setUser] = useState<User | null>(null) // User authentication state
+
+  const titleRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   // Fetch the user authentication status on mount
   useEffect(() => {
@@ -33,9 +35,6 @@ export default function DebateForum() {
     })
     return unsubscribe // Cleanup on component unmount
   }, [])
-
-  // Handle user sign-in
-
 
   // Handle user sign-out
   const handleSignOut = async () => {
@@ -72,7 +71,7 @@ export default function DebateForum() {
 
   // Handle post submission
   const handlePostSubmit = async () => {
-    if (!newPost.title || !newPost.content) {
+    if (!titleRef.current?.value || !contentRef.current?.value) {
       setError('Both title and content are required.')
       return
     }
@@ -81,11 +80,12 @@ export default function DebateForum() {
     try {
       const postsRef = collection(db, 'forums', currentForum, 'posts')
       await addDoc(postsRef, {
-        title: newPost.title,
-        content: newPost.content,
+        title: titleRef.current.value,
+        content: contentRef.current.value,
         createdAt: new Date(),
       })
-      setNewPost({ title: '', content: '' }) // Reset form after successful submission
+      titleRef.current.value = '' // Reset title after successful submission
+      contentRef.current.value = '' // Reset content after successful submission
       setError('') // Clear error
     } catch (error) {
       console.error('Error adding post:', error)
@@ -174,23 +174,11 @@ export default function DebateForum() {
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
           <Input
-            value={newPost.title}
-            onChange={(e) => {
-              setNewPost((prevPost) => ({
-                ...prevPost,
-                title: e.target.value,
-              }))
-            }}
+            ref={titleRef}
             placeholder="Title of your question"
           />
           <Textarea
-            value={newPost.content}
-            onChange={(e) => {
-              setNewPost((prevPost) => ({
-                ...prevPost,
-                content: e.target.value,
-              }))
-            }}
+            ref={contentRef}
             placeholder="Provide details about your question..."
           />
           {error && <p className="text-red-500 mt-2">{error}</p>}
