@@ -6,8 +6,6 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-firebase deploy --only functions
-
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -28,7 +26,7 @@ admin.initializeApp();
 sendgrid.setApiKey('YOUR_SENDGRID_API_KEY');
 
 // Function to send PIN email
-exports.sendPinCodeEmail = functions.auth.user().onCreate((user) => {
+exports.sendPinCodeEmail = functions.auth.user().onCreate((user: { email: any; uid: any; }) => {
   const email = user.email;
   const pin = Math.floor(100000 + Math.random() * 900000).toString(); // Generate PIN code
   
@@ -50,7 +48,7 @@ exports.sendPinCodeEmail = functions.auth.user().onCreate((user) => {
         emailVerified: false,
       });
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.error('Error sending email:', error);
     });
 });
