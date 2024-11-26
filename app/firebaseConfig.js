@@ -2,11 +2,12 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; // Import Firestore
 
-const VITE_FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
+const NEXT_PUBLIC_FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+console.log("NEXT_PUBLIC_FIREBASE_API_KEY:", NEXT_PUBLIC_FIREBASE_API_KEY); // Add this line to verify the environment variable
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: VITE_FIREBASE_API_KEY,
+  apiKey: NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: "debateforum-3be19.firebaseapp.com",
   projectId: "debateforum-3be19",
   storageBucket: "debateforum-3be19.appspot.com", // Updated this to match standard naming
