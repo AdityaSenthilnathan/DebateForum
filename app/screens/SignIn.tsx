@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
 import SignUpModal from './SignUpModal'; // Import the SignUpModal component
 
@@ -19,7 +19,15 @@ export default function SignIn() {
     e.preventDefault();
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await signOut(auth);
+        setError('Please verify your email before signing in.');
+        return;
+      }
+
       console.log('Successfully signed in with email/password');
       // You can redirect the user after successful login here
     } catch (error) {
@@ -31,7 +39,15 @@ export default function SignIn() {
   // Handle Sign In with Google
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await signOut(auth);
+        setError('Please verify your email before signing in.');
+        return;
+      }
+
       console.log('Successfully signed in with Google');
       // You can redirect the user after successful login here
     } catch (error) {
