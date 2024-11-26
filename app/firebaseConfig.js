@@ -1,26 +1,26 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, sendSignInLinkToEmail, fetchSignInMethodsForEmail, signInWithEmailLink, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getApp, getApps, initializeApp } from "firebase/app";
+import { GoogleAuthProvider, getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // Import Firestore
 
+const VITE_FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCf7Hx7HYl5NciE_0F5nPlXRsvOzM38Boc",
+  apiKey: VITE_FIREBASE_API_KEY,
   authDomain: "debateforum-3be19.firebaseapp.com",
   projectId: "debateforum-3be19",
-  storageBucket: "debateforum-3be19.firebasestorage.app",
+  storageBucket: "debateforum-3be19.appspot.com", // Updated this to match standard naming
   messagingSenderId: "24147286853",
-  appId: "1:24147286853:web:14b2cc2530daea0ed0fc2c",
-  measurementId: "G-P4V0LW5SRP"
+  appId: "1:24147286853:web:192573977b5b38d4d0fc2c",
+  measurementId: "G-X1SSYP2RTE"
 };
 
-// Initialize Firebase app
-// Initialize Firebase app
-const app = initializeApp(firebaseConfig);
-
-// Initialize Auth and Firestore
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-const db = getFirestore(app);
-
-// Export the necessary functions and objects
-export { db, auth, googleProvider, sendSignInLinkToEmail, fetchSignInMethodsForEmail, signInWithEmailLink };
+// Initialize Firebase
+const firestoreApp = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
+const googleAuthProvider = new GoogleAuthProvider();
+const auth = getAuth(firestoreApp);
+const db = getFirestore(firestoreApp); // Initialize Firestore instance
+const googleProvider = new GoogleAuthProvider(); // Initialize as googleProvider
+export { auth, googleAuthProvider, db, googleProvider}; // Export db along with auth and provider

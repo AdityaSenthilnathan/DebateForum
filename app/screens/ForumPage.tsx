@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth'
+import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 
 interface Post {
   id: string;
@@ -35,14 +35,7 @@ export default function DebateForum() {
   }, [])
 
   // Handle user sign-in
-  const handleSignIn = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password)
-    } catch (error) {
-      console.error('Error signing in:', error)
-      setError('Failed to sign in. Please check your credentials.')
-    }
-  }
+
 
   // Handle user sign-out
   const handleSignOut = async () => {
@@ -141,9 +134,7 @@ export default function DebateForum() {
             <Button onClick={() => navigateTo('forums')} size="lg">
               Explore Forums
             </Button>
-            <Button onClick={() => handleSignIn('testuser@example.com', 'password123')} className="mt-4">
-              Sign In (Test User)
-            </Button>
+            
           </>
         )}
       </div>

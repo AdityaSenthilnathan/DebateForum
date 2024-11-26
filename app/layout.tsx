@@ -2,8 +2,10 @@
 "use client";
 import './globals.css';
 import React from 'react';
-import { AuthProvider } from './authContext'; // Import AuthProvider
 import SignIn from './screens/SignIn'; // Import SignIn component
+
+
+import { AuthProvider } from './authContext'; // Import AuthProvider
 import { useAuth } from './authContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
