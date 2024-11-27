@@ -234,10 +234,14 @@ export default function DebateForum() {
               Explore Forums
             </Button>
             <div className="mt-4">
-              <p>Welcome, {user.displayName || user.email}!</p>
+              
+              <p className='pb-20'>Welcome, {user.displayName || user.email}!</p>
+              
               <Button onClick={handleSignOut} size="lg">
                 Log Out
               </Button>
+              <p className="text-center">Made by Aditya Senthilnathan</p>
+              
             </div>
           </>
         ) : (

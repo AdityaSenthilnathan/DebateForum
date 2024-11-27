@@ -12,6 +12,7 @@ const Page: React.FC = () => {
   return (
     <AuthProvider> {/* Wrap your entire app here */}
       <Layout>
+        
         <MainContent />
       </Layout>
     </AuthProvider>
