@@ -376,7 +376,7 @@ const CommentComponent = ({ comment, postId }: { comment: Comment, postId: strin
   const [showReplies, setShowReplies] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
-  const replyRef = useRef<HTMLTextAreaElement | null>(null);
+  //const replyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const visibleRepliesCount = 2; // Number of replies to show initially
 

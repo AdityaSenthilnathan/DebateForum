@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import { getStorage } from 'firebase/storage';
-
+import Image from 'next/image';
 const storage = getStorage();
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -16,7 +16,6 @@ interface UserStats {
   answered: number;
   profilePicture: string;
 }
-
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -59,7 +58,13 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">{userStats.name}&apos;s Profile</h2>
-      <img src={userStats.profilePicture || `https://via.placeholder.com/150?text=${userStats.name.charAt(0)}`} alt="Profile" className="w-32 h-32 rounded-full mb-4" />
+      <Image
+        src={userStats.profilePicture || `https://via.placeholder.com/150?text=${userStats.name.charAt(0)}`}
+        alt="Profile"
+        width={150}
+        height={150}
+        className="w-32 h-32 rounded-full mb-4"
+      />
       <input type="file" onChange={handleProfilePictureChange} />
       <p>Posts: {userStats.posts}</p>
       <p>Comments: {userStats.comments}</p>
