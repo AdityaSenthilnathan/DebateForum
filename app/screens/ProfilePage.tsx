@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import { doc, onSnapshot } from 'firebase/firestore';
 
+
 interface UserStats {
   name: string;
   posts: number;
