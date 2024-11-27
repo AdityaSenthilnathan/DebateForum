@@ -1,0 +1,70 @@
+.comment-container {
+  position: relative;
+  padding-left: 20px;
+  margin-left: 20px;
+  border-left: 2px solid #ccc;
+}
+
+.sub-comment {
+  margin-left: 40px;
+  padding-left: 20px;
+  border-left: 2px solid #ff0000;
+}
+
+.sub-comment::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40px;
+  width: 40px;
+  height: 30px;
+  border-bottom: 2px solid #ccc;
+  border-right: 2px solid #ccc;
+  border-radius: 0 0 0 40px;
+  transform: skewX(-10deg);
+  border-left: none;
+  border-top: none;
+}
+
+.replies-container {
+  position: relative;
+  margin-left: 20px;
+  padding-left: 20px;
+  border-left: 2px solid #5a0000;
+}
+
+.replies-container .sub-comment {
+  margin-left: 40px;
+  padding-left: 20px;
+  border-left: 2px solid #ffffff;
+}
+
+.replies-container .sub-comment::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60px;
+  width: 70px;
+  height: 30px;
+  border-bottom: 2px solid #ccc;
+  border-right: 2px solid #ccc;
+  border-radius: 0 0 0 40px;
+  transform: skewX(0deg);
+  border-left: none;
+  border-top: none;
+}
+
+.curved-line {
+  position: relative;
+}
+
+.curved-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -20px;
+  width: 20px;
+  height: 100%;
+  border-bottom: 2px solid #ccc;
+  border-radius: 0 0 20px 20px;
+}
