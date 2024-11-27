@@ -284,6 +284,17 @@ export default function DebateForum() {
     }, 0);
   };
   
+  // Utility function to format date with short forms
+const formatDate = (seconds: number): string => {
+  const now = Date.now() / 1000;
+  const diff = now - seconds;
+
+  if (diff < 60) return `${Math.floor(diff)} sec ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+  if (diff < 31536000) return `${Math.floor(diff / 86400)} days ago`;
+  return `${Math.floor(diff / 31536000)} yrs ago`;
+};
 
   const ForumPage = () => {
     const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
@@ -314,9 +325,11 @@ export default function DebateForum() {
                 <CardHeader>
                   <div className="flex items-center">
                     <div>
-                      <CardTitle>{post.title}</CardTitle>
-                      <p className="text-sm text-gray-500">
-                        Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}
+                      <CardTitle className = "pb-4">{post.title}</CardTitle>
+                      <p>
+                      <span className="text-sm text-gray-500">Posted by </span>
+                        <span className="font-medium text-gray-700">{post.userName}</span> 
+                        <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
                       </p>
                     </div>
                   </div>
@@ -327,8 +340,8 @@ export default function DebateForum() {
                     {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
                   </Button>
                 </CardFooter>
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold">Comments</h4>
+                <div className="mt-4 ml-8">
+                  <h4 className="text-lg font-semibold pb-4 ">Comments</h4>
                   {post.comments.slice(0, showAllComments[post.id] ? post.comments.length : 3).map((comment) => (
                     <CommentComponent key={comment.id} comment={comment} postId={post.id} />
                   ))}
@@ -337,10 +350,12 @@ export default function DebateForum() {
                       {showAllComments[post.id] ? 'Show less comments' : `See more comments (${countHiddenComments(post.comments, 3)})`}
                     </Button>
                   )}
-                  <Textarea ref={(el) => { commentRefs.current[post.id] = el }} placeholder="Add a comment..." className="mt-2" />
-                  <Button onClick={() => handleCommentSubmit(post.id)} className="mt-2">
+                  
+                  <Textarea ref={(el) => { commentRefs.current[post.id] = el }} placeholder="Add a comment..." className="mt-2 ml-4 w-11/12" />
+                  <Button onClick={() => handleCommentSubmit(post.id)} className="mt-2 ml-4">
                     Submit Comment
                   </Button>
+                 
                 </div>
               </Card>
             ))}
@@ -368,11 +383,16 @@ const CommentComponent = ({ comment, postId }: { comment: Comment, postId: strin
   return (
     <div className="comment-container">
       <div className="comment-content">
-        <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
-        <p>{comment.content}</p>
-        <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
-          {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
-        </Button>
+        <p>
+          <span className="font-medium text-gray-700">{comment.userName}</span> 
+          <span className="text-sm text-gray-500"> •{formatDate(comment.createdAt.seconds)}•</span>
+        </p>
+        <p className = "mt-2 ml-4 pr-4">{comment.content}</p>
+        {comment.replies.length > 0 && (
+          <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
+            {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+          </Button>
+        )}
         <Button variant="link" onClick={() => setShowReplyBox(!showReplyBox)}>
           {showReplyBox ? 'Cancel' : 'Reply'}
         </Button>
@@ -394,7 +414,7 @@ const CommentComponent = ({ comment, postId }: { comment: Comment, postId: strin
           <Textarea
             ref={(el) => { replyRefs.current[comment.id] = el }}
             placeholder="Add a reply..."
-            className="mt-2"
+            className="mt-2 ml-4 w-11/12"
           />
           <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
             Submit Reply
