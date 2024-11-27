@@ -58,6 +58,10 @@
   position: relative;
 }
 
+.commentCont {
+  left: 30px;
+}
+
 .curved-line::before {
   content: '';
   position: absolute;
