@@ -272,10 +272,12 @@ export default function DebateForum() {
 
   // Forum page UI (displays posts and new post form)
   const ForumPage = () => {
+    const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+  
     if (!currentForum) {
-      return <div>Please select a forum to enter.</div>
+      return <div>Please select a forum to enter.</div>;
     }
-
+  
     return (
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
@@ -313,12 +315,12 @@ export default function DebateForum() {
                 </CardFooter>
                 <div className="mt-4">
                   <h4 className="text-lg font-semibold">Comments</h4>
-                  {post.comments.slice(0, 3).map((comment) => (
+                  {post.comments.slice(0, showAllComments[post.id] ? post.comments.length : 3).map((comment) => (
                     <CommentComponent key={comment.id} comment={comment} postId={post.id} />
                   ))}
                   {post.comments.length > 3 && (
-                    <Button variant="link" onClick={() => navigateTo(`post/${post.id}`)}>
-                      See more comments
+                    <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}>
+                      {showAllComments[post.id] ? 'Show less comments' : 'See more comments'}
                     </Button>
                   )}
                   <Textarea
@@ -335,14 +337,15 @@ export default function DebateForum() {
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   // Comment component to handle nested comments
   const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
-    const [showReplies, setShowReplies] = useState(false)
-    const replyRef = useRef<HTMLTextAreaElement | null>(null)
-
+    const [showReplies, setShowReplies] = useState(false);
+    const [showAllReplies, setShowAllReplies] = useState(false);
+    const replyRef = useRef<HTMLTextAreaElement | null>(null);
+  
     return (
       <div className="ml-4 border-l-2 pl-4">
         <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
@@ -352,12 +355,12 @@ export default function DebateForum() {
         </Button>
         {showReplies && (
           <div className="mt-2">
-            {comment.replies.slice(0, 2).map((reply) => (
+            {comment.replies.slice(0, showAllReplies ? comment.replies.length : 2).map((reply) => (
               <CommentComponent key={reply.id} comment={reply} postId={postId} />
             ))}
             {comment.replies.length > 2 && (
-              <Button variant="link" onClick={() => setShowReplies(false)}>
-                See more replies
+              <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
+                {showAllReplies ? 'Show less replies' : 'See more replies'}
               </Button>
             )}
             <Textarea
@@ -371,8 +374,8 @@ export default function DebateForum() {
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
