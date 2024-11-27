@@ -7,7 +7,7 @@ import { getStorage } from 'firebase/storage';
 const storage = getStorage();
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+//import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 interface UserStats {
   name: string;

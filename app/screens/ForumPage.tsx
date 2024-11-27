@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
+import './ForumPage.css'; // Import the CSS file for curved lines
 
 interface Post {
   id: string;
@@ -141,13 +142,13 @@ export default function DebateForum() {
       setError('You must be logged in to comment.')
       return
     }
-
+  
     const commentContent = parentCommentId ? replyRefs.current[parentCommentId]?.value : commentRefs.current[postId]?.value
     if (!commentContent) {
       setError('Comment content is required.')
       return
     }
-
+  
     const postRef = doc(db, 'forums', currentForum, 'posts', postId)
     const newComment = {
       id: `${postId}-${Date.now()}`, // Generate a unique ID for the comment
@@ -156,7 +157,7 @@ export default function DebateForum() {
       userName: user.displayName || user.email || 'Anonymous',
       replies: [], // Initialize replies as an empty array
     }
-
+  
     try {
       if (parentCommentId) {
         // Add reply to a specific comment
@@ -168,6 +169,7 @@ export default function DebateForum() {
             await updateDoc(postRef, {
               comments: post.comments,
             })
+            console.log('Reply added:', newComment)
           }
         }
       } else {
@@ -175,6 +177,7 @@ export default function DebateForum() {
         await updateDoc(postRef, {
           comments: arrayUnion(newComment),
         })
+        console.log('Comment added:', newComment)
       }
       if (parentCommentId) {
         replyRefs.current[parentCommentId]!.value = '' // Reset reply after successful submission
@@ -276,8 +279,9 @@ export default function DebateForum() {
       return 0;
     }
     const hiddenComments = comments.slice(visibleCount);
-    return hiddenComments.reduce((count, comment) => count + 1 + countHiddenComments(comment.replies, 0), 0);
+    return hiddenComments.reduce((count, comment) => count + 1 + countReplies(comment.replies), 0);
   };
+  
 
   const ForumPage = () => {
     const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
@@ -291,14 +295,8 @@ export default function DebateForum() {
         <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
-          <Input
-            ref={titleRef}
-            placeholder="Title of your question"
-          />
-          <Textarea
-            ref={contentRef}
-            placeholder="Provide details about your question..."
-          />
+          <Input ref={titleRef} placeholder="Title of your question" />
+          <Textarea ref={contentRef} placeholder="Provide details about your question..." />
           {error && <p className="text-red-500 mt-2">{error}</p>}
           <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
             {loading ? 'Submitting...' : 'Submit Post'}
@@ -315,7 +313,9 @@ export default function DebateForum() {
                   <div className="flex items-center">
                     <div>
                       <CardTitle>{post.title}</CardTitle>
-                      <p className="text-sm text-gray-500">Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}</p>
+                      <p className="text-sm text-gray-500">
+                        Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 </CardHeader>
@@ -335,11 +335,7 @@ export default function DebateForum() {
                       {showAllComments[post.id] ? 'Show less comments' : `See more comments (${countHiddenComments(post.comments, 3)})`}
                     </Button>
                   )}
-                  <Textarea
-                    ref={(el) => { commentRefs.current[post.id] = el }}
-                    placeholder="Add a comment..."
-                    className="mt-2"
-                  />
+                  <Textarea ref={(el) => { commentRefs.current[post.id] = el }} placeholder="Add a comment..." className="mt-2" />
                   <Button onClick={() => handleCommentSubmit(post.id)} className="mt-2">
                     Submit Comment
                   </Button>
@@ -353,35 +349,43 @@ export default function DebateForum() {
   };
 
   // Comment component to handle nested comments
-  const countReplies = (replies: Comment[], visibleCount: number): number => {
-  if (replies.length <= visibleCount) {
-    return 0;
-  }
-  const hiddenReplies = replies.slice(visibleCount);
-  return hiddenReplies.reduce((count, reply) => count + 1 + countReplies(reply.replies, 0), 0);
-};
+  const countReplies = (replies: Comment[]): number => {
+    return replies.reduce((count, reply) => {
+      return count + 1 + countReplies(reply.replies);
+    }, 0);
+  };
   const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
     const [showReplies, setShowReplies] = useState(false);
     const [showAllReplies, setShowAllReplies] = useState(false);
+    const [showReplyBox, setShowReplyBox] = useState(false);
     const replyRef = useRef<HTMLTextAreaElement | null>(null);
   
     return (
-      <div className="ml-4 border-l-2 pl-4">
-        <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
-        <p>{comment.content}</p>
-        <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
-          {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies, 2)})`}
-        </Button>
+      <div className="comment-container">
+        <div className="comment-content">
+          <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
+          <p>{comment.content}</p>
+          <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
+            {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+          </Button>
+          <Button variant="link" onClick={() => setShowReplyBox(!showReplyBox)}>
+            {showReplyBox ? 'Cancel' : 'Reply'}
+          </Button>
+        </div>
         {showReplies && (
-          <div className="mt-2">
+          <div>
             {comment.replies.slice(0, showAllReplies ? comment.replies.length : 2).map((reply) => (
               <CommentComponent key={reply.id} comment={reply} postId={postId} />
             ))}
             {comment.replies.length > 2 && (
               <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
-                {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies, 2)})`}
+                {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies) - 2})`}
               </Button>
             )}
+          </div>
+        )}
+        {showReplyBox && (
+          <div className="reply-box">
             <Textarea
               ref={(el) => { replyRefs.current[comment.id] = el }}
               placeholder="Add a reply..."
