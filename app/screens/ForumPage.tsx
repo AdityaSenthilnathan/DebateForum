@@ -271,6 +271,14 @@ export default function DebateForum() {
   )
 
   // Forum page UI (displays posts and new post form)
+  const countHiddenComments = (comments: Comment[], visibleCount: number): number => {
+    if (comments.length <= visibleCount) {
+      return 0;
+    }
+    const hiddenComments = comments.slice(visibleCount);
+    return hiddenComments.reduce((count, comment) => count + 1 + countHiddenComments(comment.replies, 0), 0);
+  };
+
   const ForumPage = () => {
     const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
   
@@ -304,8 +312,12 @@ export default function DebateForum() {
             {posts.map((post) => (
               <Card key={post.id}>
                 <CardHeader>
-                  <CardTitle>{post.title}</CardTitle>
-                  <p className="text-sm text-gray-500">Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}</p>
+                  <div className="flex items-center">
+                    <div>
+                      <CardTitle>{post.title}</CardTitle>
+                      <p className="text-sm text-gray-500">Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}</p>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>{post.content}</CardContent>
                 <CardFooter>
@@ -320,7 +332,7 @@ export default function DebateForum() {
                   ))}
                   {post.comments.length > 3 && (
                     <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}>
-                      {showAllComments[post.id] ? 'Show less comments' : 'See more comments'}
+                      {showAllComments[post.id] ? 'Show less comments' : `See more comments (${countHiddenComments(post.comments, 3)})`}
                     </Button>
                   )}
                   <Textarea
@@ -341,6 +353,13 @@ export default function DebateForum() {
   };
 
   // Comment component to handle nested comments
+  const countReplies = (replies: Comment[], visibleCount: number): number => {
+  if (replies.length <= visibleCount) {
+    return 0;
+  }
+  const hiddenReplies = replies.slice(visibleCount);
+  return hiddenReplies.reduce((count, reply) => count + 1 + countReplies(reply.replies, 0), 0);
+};
   const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
     const [showReplies, setShowReplies] = useState(false);
     const [showAllReplies, setShowAllReplies] = useState(false);
@@ -351,7 +370,7 @@ export default function DebateForum() {
         <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
         <p>{comment.content}</p>
         <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
-          {showReplies ? 'Hide replies' : 'Show replies'} ({comment.replies?.length || 0})
+          {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies, 2)})`}
         </Button>
         {showReplies && (
           <div className="mt-2">
@@ -360,7 +379,7 @@ export default function DebateForum() {
             ))}
             {comment.replies.length > 2 && (
               <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
-                {showAllReplies ? 'Show less replies' : 'See more replies'}
+                {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies, 2)})`}
               </Button>
             )}
             <Textarea
