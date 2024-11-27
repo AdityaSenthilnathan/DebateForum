@@ -279,7 +279,9 @@ export default function DebateForum() {
       return 0;
     }
     const hiddenComments = comments.slice(visibleCount);
-    return hiddenComments.reduce((count, comment) => count + 1 + countReplies(comment.replies), 0);
+    return hiddenComments.reduce((count, comment) => {
+      return count + 1 + countReplies(comment.replies);
+    }, 0);
   };
   
 
@@ -349,57 +351,59 @@ export default function DebateForum() {
   };
 
   // Comment component to handle nested comments
-  const countReplies = (replies: Comment[]): number => {
-    return replies.reduce((count, reply) => {
-      return count + 1 + countReplies(reply.replies);
-    }, 0);
-  };
-  const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
-    const [showReplies, setShowReplies] = useState(false);
-    const [showAllReplies, setShowAllReplies] = useState(false);
-    const [showReplyBox, setShowReplyBox] = useState(false);
-    const replyRef = useRef<HTMLTextAreaElement | null>(null);
   
-    return (
-      <div className="comment-container">
-        <div className="comment-content">
-          <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
-          <p>{comment.content}</p>
-          <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
-            {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
-          </Button>
-          <Button variant="link" onClick={() => setShowReplyBox(!showReplyBox)}>
-            {showReplyBox ? 'Cancel' : 'Reply'}
+const countReplies = (replies: Comment[]): number => {
+  return replies.reduce((count, reply) => {
+    return count + 1 + countReplies(reply.replies);
+  }, 0);
+};
+const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
+  const [showReplies, setShowReplies] = useState(false);
+  const [showAllReplies, setShowAllReplies] = useState(false);
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const replyRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const visibleRepliesCount = 2; // Number of replies to show initially
+
+  return (
+    <div className="comment-container">
+      <div className="comment-content">
+        <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
+        <p>{comment.content}</p>
+        <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
+          {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+        </Button>
+        <Button variant="link" onClick={() => setShowReplyBox(!showReplyBox)}>
+          {showReplyBox ? 'Cancel' : 'Reply'}
+        </Button>
+      </div>
+      {showReplies && (
+        <div>
+          {comment.replies.slice(0, showAllReplies ? comment.replies.length : visibleRepliesCount).map((reply) => (
+            <CommentComponent key={reply.id} comment={reply} postId={postId} />
+          ))}
+          {comment.replies.length > visibleRepliesCount && (
+            <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
+              {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies.slice(visibleRepliesCount))})`}
+            </Button>
+          )}
+        </div>
+      )}
+      {showReplyBox && (
+        <div className="reply-box">
+          <Textarea
+            ref={(el) => { replyRefs.current[comment.id] = el }}
+            placeholder="Add a reply..."
+            className="mt-2"
+          />
+          <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
+            Submit Reply
           </Button>
         </div>
-        {showReplies && (
-          <div>
-            {comment.replies.slice(0, showAllReplies ? comment.replies.length : 2).map((reply) => (
-              <CommentComponent key={reply.id} comment={reply} postId={postId} />
-            ))}
-            {comment.replies.length > 2 && (
-              <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
-                {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies) - 2})`}
-              </Button>
-            )}
-          </div>
-        )}
-        {showReplyBox && (
-          <div className="reply-box">
-            <Textarea
-              ref={(el) => { replyRefs.current[comment.id] = el }}
-              placeholder="Add a reply..."
-              className="mt-2"
-            />
-            <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
-              Submit Reply
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
+      )}
+    </div>
+  );
+};
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
