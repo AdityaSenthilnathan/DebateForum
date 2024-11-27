@@ -13,6 +13,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <html lang="en">
       <body>
         <AuthProvider>
+          
           {/* Wrapping AuthContent with children, allowing conditional rendering */}
           <AuthContent>{children}</AuthContent>
         </AuthProvider>
