@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { collection, addDoc, query, onSnapshot } from 'firebase/firestore'
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 
@@ -16,6 +16,16 @@ interface Post {
   content: string;
   createdAt: { seconds: number }; // Firestore timestamp format
   userName: string;
+  likes: string[]; // Array of user IDs who liked the post
+  comments: Comment[]; // Array of comments
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: { seconds: number }; // Firestore timestamp format
+  userName: string;
+  replies: Comment[]; // Array of nested comments
 }
 
 export default function DebateForum() {
@@ -28,6 +38,8 @@ export default function DebateForum() {
 
   const titleRef = useRef<HTMLInputElement>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
+  const commentRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({})
+  const replyRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({})
 
   // Fetch the user authentication status on mount
   useEffect(() => {
@@ -57,6 +69,8 @@ export default function DebateForum() {
         const fetchedPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          likes: doc.data().likes || [], // Ensure likes is always an array
+          comments: doc.data().comments || [], // Ensure comments is always an array
         })) as Post[] // Cast to Post type
 
         setPosts(fetchedPosts)
@@ -85,6 +99,8 @@ export default function DebateForum() {
         content: contentRef.current.value,
         createdAt: new Date(),
         userName: user?.displayName || user?.email || 'Anonymous',
+        likes: [], // Initialize likes as an empty array
+        comments: [], // Initialize comments as an empty array
       })
       titleRef.current.value = '' // Reset title after successful submission
       contentRef.current.value = '' // Reset content after successful submission
@@ -94,6 +110,96 @@ export default function DebateForum() {
       setError('Failed to add the post. Please try again later.')
     }
     setLoading(false)
+  }
+
+  // Handle post like
+  const handleLikePost = async (postId: string) => {
+    if (!user) {
+      setError('You must be logged in to like a post.')
+      return
+    }
+
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId)
+    const post = posts.find((post) => post.id === postId)
+
+    if (post) {
+      const isLiked = post.likes.includes(user.uid)
+      try {
+        await updateDoc(postRef, {
+          likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+        })
+      } catch (error) {
+        console.error('Error updating likes:', error)
+        setError('Failed to update likes. Please try again later.')
+      }
+    }
+  }
+
+  // Handle comment submission
+  const handleCommentSubmit = async (postId: string, parentCommentId?: string) => {
+    if (!user) {
+      setError('You must be logged in to comment.')
+      return
+    }
+
+    const commentContent = parentCommentId ? replyRefs.current[parentCommentId]?.value : commentRefs.current[postId]?.value
+    if (!commentContent) {
+      setError('Comment content is required.')
+      return
+    }
+
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId)
+    const newComment = {
+      id: `${postId}-${Date.now()}`, // Generate a unique ID for the comment
+      content: commentContent,
+      createdAt: { seconds: Math.floor(Date.now() / 1000) },
+      userName: user.displayName || user.email || 'Anonymous',
+      replies: [], // Initialize replies as an empty array
+    }
+
+    try {
+      if (parentCommentId) {
+        // Add reply to a specific comment
+        const post = posts.find((post) => post.id === postId)
+        if (post) {
+          const parentComment = findComment(post.comments, parentCommentId)
+          if (parentComment) {
+            parentComment.replies.push(newComment)
+            await updateDoc(postRef, {
+              comments: post.comments,
+            })
+          }
+        }
+      } else {
+        // Add comment to the post
+        await updateDoc(postRef, {
+          comments: arrayUnion(newComment),
+        })
+      }
+      if (parentCommentId) {
+        replyRefs.current[parentCommentId]!.value = '' // Reset reply after successful submission
+      } else {
+        commentRefs.current[postId]!.value = '' // Reset comment after successful submission
+      }
+      setError('') // Clear error
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      setError('Failed to add the comment. Please try again later.')
+    }
+  }
+
+  // Find a comment by ID
+  const findComment = (comments: Comment[], commentId: string): Comment | null => {
+    for (const comment of comments) {
+      if (comment.id === commentId) {
+        return comment
+      }
+      const found = findComment(comment.replies, commentId)
+      if (found) {
+        return found
+      }
+    }
+    return null
   }
 
   // Handle navigation between pages
@@ -200,8 +306,68 @@ export default function DebateForum() {
                   <p className="text-sm text-gray-500">Posted by {post.userName} on {new Date(post.createdAt.seconds * 1000).toLocaleString()}</p>
                 </CardHeader>
                 <CardContent>{post.content}</CardContent>
+                <CardFooter>
+                  <Button onClick={() => handleLikePost(post.id)}>
+                    {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
+                  </Button>
+                </CardFooter>
+                <div className="mt-4">
+                  <h4 className="text-lg font-semibold">Comments</h4>
+                  {post.comments.slice(0, 3).map((comment) => (
+                    <CommentComponent key={comment.id} comment={comment} postId={post.id} />
+                  ))}
+                  {post.comments.length > 3 && (
+                    <Button variant="link" onClick={() => navigateTo(`post/${post.id}`)}>
+                      See more comments
+                    </Button>
+                  )}
+                  <Textarea
+                    ref={(el) => { commentRefs.current[post.id] = el }}
+                    placeholder="Add a comment..."
+                    className="mt-2"
+                  />
+                  <Button onClick={() => handleCommentSubmit(post.id)} className="mt-2">
+                    Submit Comment
+                  </Button>
+                </div>
               </Card>
             ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Comment component to handle nested comments
+  const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
+    const [showReplies, setShowReplies] = useState(false)
+    const replyRef = useRef<HTMLTextAreaElement | null>(null)
+
+    return (
+      <div className="ml-4 border-l-2 pl-4">
+        <p className="text-sm text-gray-500">Comment by {comment.userName} on {new Date(comment.createdAt.seconds * 1000).toLocaleString()}</p>
+        <p>{comment.content}</p>
+        <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
+          {showReplies ? 'Hide replies' : 'Show replies'} ({comment.replies?.length || 0})
+        </Button>
+        {showReplies && (
+          <div className="mt-2">
+            {comment.replies.slice(0, 2).map((reply) => (
+              <CommentComponent key={reply.id} comment={reply} postId={postId} />
+            ))}
+            {comment.replies.length > 2 && (
+              <Button variant="link" onClick={() => setShowReplies(false)}>
+                See more replies
+              </Button>
+            )}
+            <Textarea
+              ref={(el) => { replyRefs.current[comment.id] = el }}
+              placeholder="Add a reply..."
+              className="mt-2"
+            />
+            <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
+              Submit Reply
+            </Button>
           </div>
         )}
       </div>
