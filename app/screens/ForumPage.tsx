@@ -476,12 +476,11 @@ const ForumPage = () => {
 
 const PostPage = () => {
   const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+  const userName = useUserName(selectedPost?.userEmail || '');
 
   if (!selectedPost) {
     return <div>No post selected.</div>;
   }
-
-  const userName = useUserName(selectedPost.userEmail);
 
   return (
     <div className="container mx-auto px-4 py-8">
