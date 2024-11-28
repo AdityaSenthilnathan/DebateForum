@@ -2,7 +2,7 @@
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
-
+import { GoogleAuthProvider } from "firebase/auth";
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: "debateforum-3be19.firebaseapp.com",
@@ -16,8 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-export { auth, db };
+const googleAuthProvider = new GoogleAuthProvider();
+export { auth, db, googleAuthProvider };
 
 export const signUpUser = async (email: string, password: string, displayName: string) => {
   try {
