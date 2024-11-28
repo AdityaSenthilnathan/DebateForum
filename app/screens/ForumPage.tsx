@@ -426,11 +426,11 @@ const countTotalComments = (comments: Comment[]): number => {
   }, 0);
 };
 const ForumPage = () => {
+  const userNames = useUserNames(posts);
+
   if (!currentForum) {
     return <div>Please select a forum to enter.</div>;
   }
-
-  const userNames = useUserNames(posts);
 
   return (
     <div className="container mx-auto px-4 py-8">
