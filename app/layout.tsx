@@ -11,6 +11,10 @@ import { useAuth } from './authContext';
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <html lang="en">
+      <head>
+      <link rel="icon" href="/favicon.png" type="image/png" />
+      <title>Debate Hub</title>
+      </head>
       <body>
         <AuthProvider>
           
