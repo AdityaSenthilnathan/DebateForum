@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 import './ForumPage.css'; // Import the CSS file for curved lines
@@ -17,7 +17,7 @@ interface Post {
   title: string;
   content: string;
   createdAt: { seconds: number }; // Firestore timestamp format
-  userName: string;
+  userEmail: string;
   likes: string[]; // Array of user IDs who liked the post
   comments: Comment[]; // Array of comments
 }
@@ -26,7 +26,7 @@ interface Comment {
   id: string;
   content: string;
   createdAt: { seconds: number }; // Firestore timestamp format
-  userName: string;
+  userEmail: string;
   replies: Comment[]; // Array of nested comments
 }
 
@@ -46,10 +46,28 @@ export default function DebateForum() {
 
   // Fetch the user authentication status on mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user) // Set the user or null if logged out
-    })
-    return unsubscribe // Cleanup on component unmount
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (!user.emailVerified) {
+          await signOut(auth);
+          setError('Please verify your email before accessing the forum.');
+          setUser(null);
+          return;
+        }
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser({ ...user, displayName: userDoc.data().displayName, email: user.email });
+        } else {
+          const displayName = user.displayName || user.email;
+          await setDoc(userDocRef, { displayName, email: user.email });
+          setUser({ ...user, displayName, email: user.email });
+        }
+      } else {
+        setUser(null);
+      }
+    });
+    return unsubscribe; // Cleanup on component unmount
   }, [])
 
   // Handle user sign-out
@@ -105,7 +123,7 @@ export default function DebateForum() {
         title: titleRef.current.value,
         content: contentRef.current.value,
         createdAt: new Date(),
-        userName: user?.displayName || user?.email || 'Anonymous',
+        userEmail: user?.email || 'Anonymous',
         likes: [], // Initialize likes as an empty array
         comments: [], // Initialize comments as an empty array
       });
@@ -122,25 +140,40 @@ export default function DebateForum() {
   // Handle post like
   const handleLikePost = async (postId: string) => {
     if (!user) {
-      setError('You must be logged in to like a post.')
-      return
+      setError('You must be logged in to like a post.');
+      return;
     }
-
-    const postRef = doc(db, 'forums', currentForum, 'posts', postId)
-    const post = posts.find((post) => post.id === postId)
-
+  
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId);
+    const post = posts.find((post) => post.id === postId);
+  
     if (post) {
-      const isLiked = post.likes.includes(user.uid)
+      const isLiked = post.likes.includes(user.uid);
       try {
         await updateDoc(postRef, {
           likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-        })
+        });
+        // Update local state
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId
+              ? { ...p, likes: isLiked ? p.likes.filter((uid) => uid !== user.uid) : [...p.likes, user.uid] }
+              : p
+          )
+        );
+        // Refresh the selected post if it is the current post
+        if (selectedPost && selectedPost.id === postId) {
+          setSelectedPost({
+            ...selectedPost,
+            likes: isLiked ? selectedPost.likes.filter((uid) => uid !== user.uid) : [...selectedPost.likes, user.uid],
+          });
+        }
       } catch (error) {
-        console.error('Error updating likes:', error)
-        setError('Failed to update likes. Please try again later.')
+        console.error('Error updating likes:', error);
+        setError('Failed to update likes. Please try again later.');
       }
     }
-  }
+  };
 
   // Handle comment submission
   const handleCommentSubmit = async (postId: string, parentCommentId?: string) => {
@@ -160,7 +193,7 @@ export default function DebateForum() {
       id: `${postId}-${Date.now()}`, // Generate a unique ID for the comment
       content: commentContent,
       createdAt: { seconds: Math.floor(Date.now() / 1000) },
-      userName: user.displayName || user.email || 'Anonymous',
+      userEmail: user?.email || 'Anonymous',
       replies: [], // Initialize replies as an empty array
     };
   
@@ -175,6 +208,19 @@ export default function DebateForum() {
             await updateDoc(postRef, {
               comments: post.comments,
             });
+            // Update local state
+            setPosts((prevPosts) =>
+              prevPosts.map((p) =>
+                p.id === postId ? { ...p, comments: [...p.comments] } : p
+              )
+            );
+            // Refresh the selected post if it is the current post
+            if (selectedPost && selectedPost.id === postId) {
+              setSelectedPost({
+                ...selectedPost,
+                comments: [...selectedPost.comments],
+              });
+            }
             console.log('Reply added:', newComment);
           }
         }
@@ -183,6 +229,19 @@ export default function DebateForum() {
         await updateDoc(postRef, {
           comments: arrayUnion(newComment),
         });
+        // Update local state
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p
+          )
+        );
+        // Refresh the selected post if it is the current post
+        if (selectedPost && selectedPost.id === postId) {
+          setSelectedPost({
+            ...selectedPost,
+            comments: [...selectedPost.comments, newComment],
+          });
+        }
         console.log('Comment added:', newComment);
       }
       if (parentCommentId) {
@@ -215,6 +274,29 @@ export default function DebateForum() {
     return null
   }
 
+  const getUserName = async (email: string) => {
+    const userQuery = query(collection(db, 'users'), where('email', '==', email));
+    const querySnapshot = await getDocs(userQuery);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data().displayName || email;
+    }
+    return email;
+  };
+  
+  const useUserName = (email: string) => {
+    const [userName, setUserName] = useState<string>(email);
+  
+    useEffect(() => {
+      const fetchUserName = async () => {
+        const name = await getUserName(email);
+        setUserName(name);
+      };
+      fetchUserName();
+    }, [email]);
+  
+    return userName;
+  };
+
   // Handle navigation between pages
   const navigateTo = (page: string, post?: Post) => {
     setSelectedPost(post || null);
@@ -246,14 +328,22 @@ export default function DebateForum() {
               Explore Forums
             </Button>
             <div className="mt-4">
-              
-              <p className='pb-20'>Welcome, {user.displayName || user.email}!</p>
-              
+              <p className='pb-20'>
+                Welcome,
+                <span className="relative group pl-1">
+                  <span>{user.displayName || user.email}</span>
+                  {user.displayName && (
+                    <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                      {user.email}
+                    </span>
+                  )}
+                </span>
+                !
+              </p>
               <Button onClick={handleSignOut} size="lg">
                 Log Out
               </Button>
               <p className="text-center">Made by Aditya Senthilnathan</p>
-              
             </div>
           </>
         ) : (
@@ -261,7 +351,6 @@ export default function DebateForum() {
             <Button onClick={() => navigateTo('forums')} size="lg">
               Explore Forums
             </Button>
-            
           </>
         )}
       </div>
@@ -347,24 +436,29 @@ const ForumPage = () => {
               <CardHeader>
                 <div className="flex items-center">
                   <div>
-                  <p>
-                    <span className="text-sm text-gray-500">Posted by </span>
-                      <span className="font-medium text-gray-700">{post.userName}</span> 
+                    <p>
+                      <span className="text-sm text-gray-500">Posted by </span>
+                      <span className="relative group font-medium text-gray-700">
+                        {useUserName(post.userEmail)}
+                        <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                          {post.userEmail}
+                        </span>
+                      </span>
                       <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
                     </p>
-                    <CardTitle className = "pb-4">{post.title}</CardTitle>
+                    <CardTitle className="pb-4">{post.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>{post.content}</CardContent>
-              <CardFooter className = "p-4 pt-0">
+              <CardFooter className="p-4 pt-0">
                 <Button onClick={() => handleLikePost(post.id)}>
                   {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
                 </Button>
-                <div className = "pl-4">
-                <Button onClick={() => navigateTo('post', post)}>
-                  Comment ({countTotalComments(post.comments)})
-                </Button>
+                <div className="pl-4">
+                  <Button onClick={() => navigateTo('post', post)}>
+                    Comments ({countTotalComments(post.comments)})
+                  </Button>
                 </div>
               </CardFooter>
             </Card>
@@ -386,7 +480,12 @@ const PostPage = () => {
     <div className="container mx-auto px-4 py-8">
       <p>
         <span className="text-sm text-gray-500">Posted by </span>
-        <span className="font-medium text-gray-700">{selectedPost.userName}</span>
+        <span className="relative group font-medium text-gray-700">
+          {useUserName(selectedPost.userEmail)}
+          <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+            {selectedPost.userEmail}
+          </span>
+        </span>
         <span className="text-sm text-gray-500"> •{formatDate(selectedPost.createdAt.seconds)}• </span>
       </p>
       <h2 className="text-3xl font-bold mb-6 pl-5">{selectedPost.title}</h2>
@@ -456,7 +555,12 @@ const countReplies = (replies: Comment[]): number => {
     <div className="comment-container">
       <div className="comment-content">
         <p>
-          <span className="font-medium text-gray-700">{comment.userName}</span> 
+          <span className="relative group font-medium text-gray-700">
+            {useUserName(comment.userEmail)}
+            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+              {comment.userEmail}
+            </span>
+          </span>
           <span className="text-sm text-gray-500"> •{formatDate(comment.createdAt.seconds)}•</span>
         </p>
         <p className="mt-2 ml-4 pr-4">{comment.content}</p>
@@ -496,22 +600,81 @@ const countReplies = (replies: Comment[]): number => {
     </div>
   );
 };
+
+const AccountPage = () => {
+  const [newDisplayName, setNewDisplayName] = useState<string>('');
+  const [updateLoading, setUpdateLoading] = useState<boolean>(false);
+  const [updateError, setUpdateError] = useState<string>('');
+
+  const handleDisplayNameChange = async () => {
+    if (!newDisplayName) {
+      setUpdateError('Display name cannot be empty.');
+      return;
+    }
+
+    setUpdateLoading(true);
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userDocRef, { displayName: newDisplayName }, { merge: true });
+        setUser({ ...currentUser, displayName: newDisplayName });
+        setUpdateError('');
+      }
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      setUpdateError('Failed to update display name. Please try again later.');
+    }
+    setUpdateLoading(false);
+  };
+
+  if (!user) {
+    return <div>Please log in to view your account details.</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto px-4 py-4">
-          <ul className="flex space-x-4">
-            <li><Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button></li>
-            <li><Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button></li>
-          </ul>
-        </nav>
-      </header>
-      <main>
-        {currentPage === 'home' && <HomePage />}
-        {currentPage === 'forums' && <ForumsPage />}
-        {currentPage === 'forum' && <ForumPage />}
-        {currentPage === 'post' && <PostPage />}
-      </main>
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold mb-6">Account Details</h2>
+      <div className="bg-white rounded-lg p-4 shadow-md">
+        <p><strong>Name:</strong> {user.displayName || 'Anonymous'}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        <div className="mt-4">
+          <Input
+            value={newDisplayName}
+            onChange={(e) => setNewDisplayName(e.target.value)}
+            placeholder="New display name"
+          />
+          {updateError && <p className="text-red-500 mt-2">{updateError}</p>}
+          <Button onClick={handleDisplayNameChange} className="mt-2" disabled={updateLoading}>
+            {updateLoading ? 'Updating...' : 'Update Display Name'}
+          </Button>
+        </div>
+      </div>
+      <Button onClick={() => navigateTo('home')} className="mt-4">
+        Back to Home
+      </Button>
     </div>
-  )
+  );
+};
+
+return (
+  <div className="min-h-screen bg-gray-100">
+    <header className="bg-white shadow">
+      <nav className="container mx-auto px-4 py-4">
+        <ul className="flex space-x-4">
+         <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
+          <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
+          <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      {currentPage === 'home' && <HomePage />}
+      {currentPage === 'forums' && <ForumsPage />}
+      {currentPage === 'forum' && <ForumPage />}
+      {currentPage === 'post' && <PostPage />}
+      {currentPage === 'account' && <AccountPage />}
+    </main>
+  </div>
+);
 }

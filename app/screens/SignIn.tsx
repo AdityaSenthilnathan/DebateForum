@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,17 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false); // Manage modal visibility
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      setShowError(true);
+      const timer = setTimeout(() => {
+        setShowError(false);
+      }, 5000); // Hide error after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Handle Sign In with Email/Password
   const handleSignIn = async (e: React.FormEvent) => {
@@ -24,7 +35,7 @@ export default function SignIn() {
 
       if (!user.emailVerified) {
         await signOut(auth);
-        setError('Please verify your email before signing in.');
+        setError('Please verify your email before signing in. Check your email for a confirmation link.');
         return;
       }
 
@@ -44,7 +55,7 @@ export default function SignIn() {
 
       if (!user.emailVerified) {
         await signOut(auth);
-        setError('Please verify your email before signing in.');
+        setError('Please verify your email before signing in. Check your email for a confirmation link.');
         return;
       }
 
@@ -81,7 +92,7 @@ export default function SignIn() {
             </TabsList>
             <TabsContent value="email">
               <form onSubmit={handleSignIn} className="space-y-4">
-                {error && <p className="text-red-500">{error}</p>}
+                {error && showError && <p className="text-red-500">{error}</p>}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
