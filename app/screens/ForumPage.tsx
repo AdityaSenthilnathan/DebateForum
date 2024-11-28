@@ -10,6 +10,7 @@ import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arra
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 import './ForumPage.css'; // Import the CSS file for curved lines
+//import Link from 'next/link';
 
 interface Post {
   id: string;
@@ -36,6 +37,7 @@ export default function DebateForum() {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [user, setUser] = useState<User | null>(null) // User authentication state
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null); // State to hold the selected post
 
   const titleRef = useRef<HTMLInputElement>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
@@ -87,14 +89,18 @@ export default function DebateForum() {
 
   // Handle post submission
   const handlePostSubmit = async () => {
-    if (!titleRef.current?.value || !contentRef.current?.value) {
-      setError('Both title and content are required.')
-      return
+    if (!titleRef.current?.value) {
+      if (currentPage === 'forum') setError('Title is required.');
+      return;
+    }
+    if (!contentRef.current?.value) {
+      if (currentPage === 'forum') setError('Content is required.');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const postsRef = collection(db, 'forums', currentForum, 'posts')
+      const postsRef = collection(db, 'forums', currentForum, 'posts');
       await addDoc(postsRef, {
         title: titleRef.current.value,
         content: contentRef.current.value,
@@ -102,15 +108,15 @@ export default function DebateForum() {
         userName: user?.displayName || user?.email || 'Anonymous',
         likes: [], // Initialize likes as an empty array
         comments: [], // Initialize comments as an empty array
-      })
-      titleRef.current.value = '' // Reset title after successful submission
-      contentRef.current.value = '' // Reset content after successful submission
-      setError('') // Clear error
+      });
+      titleRef.current.value = ''; // Reset title after successful submission
+      contentRef.current.value = ''; // Reset content after successful submission
+      setError(''); // Clear error
     } catch (error) {
-      console.error('Error adding post:', error)
-      setError('Failed to add the post. Please try again later.')
+      console.error('Error adding post:', error);
+      setError('Failed to add the post. Please try again later.');
     }
-    setLoading(false)
+    setLoading(false);
   }
 
   // Handle post like
@@ -139,57 +145,61 @@ export default function DebateForum() {
   // Handle comment submission
   const handleCommentSubmit = async (postId: string, parentCommentId?: string) => {
     if (!user) {
-      setError('You must be logged in to comment.')
-      return
+      setError('You must be logged in to comment.');
+      return;
     }
   
-    const commentContent = parentCommentId ? replyRefs.current[parentCommentId]?.value : commentRefs.current[postId]?.value
+    const commentContent = parentCommentId ? replyRefs.current[parentCommentId]?.value : commentRefs.current[postId]?.value;
     if (!commentContent) {
-      setError('Comment content is required.')
-      return
+      if (currentPage === 'post') setError('Comment content is required.');
+      return;
     }
   
-    const postRef = doc(db, 'forums', currentForum, 'posts', postId)
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId);
     const newComment = {
       id: `${postId}-${Date.now()}`, // Generate a unique ID for the comment
       content: commentContent,
       createdAt: { seconds: Math.floor(Date.now() / 1000) },
       userName: user.displayName || user.email || 'Anonymous',
       replies: [], // Initialize replies as an empty array
-    }
+    };
   
     try {
       if (parentCommentId) {
         // Add reply to a specific comment
-        const post = posts.find((post) => post.id === postId)
+        const post = posts.find((post) => post.id === postId);
         if (post) {
-          const parentComment = findComment(post.comments, parentCommentId)
+          const parentComment = findComment(post.comments, parentCommentId);
           if (parentComment) {
-            parentComment.replies.push(newComment)
+            parentComment.replies.push(newComment);
             await updateDoc(postRef, {
               comments: post.comments,
-            })
-            console.log('Reply added:', newComment)
+            });
+            console.log('Reply added:', newComment);
           }
         }
       } else {
         // Add comment to the post
         await updateDoc(postRef, {
           comments: arrayUnion(newComment),
-        })
-        console.log('Comment added:', newComment)
+        });
+        console.log('Comment added:', newComment);
       }
       if (parentCommentId) {
-        replyRefs.current[parentCommentId]!.value = '' // Reset reply after successful submission
+        if (replyRefs.current[parentCommentId]) {
+          replyRefs.current[parentCommentId]!.value = ''; // Reset reply after successful submission
+        }
       } else {
-        commentRefs.current[postId]!.value = '' // Reset comment after successful submission
+        if (commentRefs.current[postId]) {
+          commentRefs.current[postId]!.value = ''; // Reset comment after successful submission
+        }
       }
-      setError('') // Clear error
+      setError(''); // Clear error
     } catch (error) {
-      console.error('Error adding comment:', error)
-      setError('Failed to add the comment. Please try again later.')
+      console.error('Error adding comment:', error);
+      setError('Failed to add the comment. Please try again later.');
     }
-  }
+  };
 
   // Find a comment by ID
   const findComment = (comments: Comment[], commentId: string): Comment | null => {
@@ -206,8 +216,10 @@ export default function DebateForum() {
   }
 
   // Handle navigation between pages
-  const navigateTo = (page: string) => {
-    setCurrentPage(page)
+  const navigateTo = (page: string, post?: Post) => {
+    setSelectedPost(post || null);
+    setError(''); // Clear error when navigating to a new page
+    setCurrentPage(page);
   }
 
   // Handle forum selection and navigation
@@ -256,7 +268,7 @@ export default function DebateForum() {
     </div>
   )
 
-  // Forums page UI (lists forums)
+  // Forums page UI
   const ForumsPage = () => (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">Debate Forums</h2>
@@ -266,7 +278,7 @@ export default function DebateForum() {
             <CardHeader>
               <CardTitle>{format}</CardTitle>
             </CardHeader>
-            <CardFooter>
+            <CardFooter className = "p-4 pt-0">
               <Button onClick={() => handleForumNavigation(format)}>
                 Enter Forum
               </Button>
@@ -300,74 +312,120 @@ const formatDate = (seconds: number): string => {
   return `${Math.floor(diff / 31536000)} yrs ago`;
 };
 
-  const ForumPage = () => {
-    const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
-  
-    if (!currentForum) {
-      return <div>Please select a forum to enter.</div>;
-    }
-  
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
-          <Input ref={titleRef} placeholder="Title of your question" />
-          <Textarea ref={contentRef} placeholder="Provide details about your question..." />
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-          <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Post'}
+const countTotalComments = (comments: Comment[]): number => {
+  return comments.reduce((count, comment) => {
+    return count + 1 + countTotalComments(comment.replies);
+  }, 0);
+};
+
+const ForumPage = () => {
+  //const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+
+  if (!currentForum) {
+    return <div>Please select a forum to enter.</div>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
+        <Input ref={titleRef} placeholder="Title of your question" />
+        <Textarea ref={contentRef} placeholder="Provide details about your question..." />
+        {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
+        <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit Post'}
+        </Button>
+      </div>
+      <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
+      {posts.length === 0 ? (
+        <p>No posts available yet. Be the first to start a discussion!</p>
+      ) : (
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <Card key={post.id}>
+              <CardHeader>
+                <div className="flex items-center">
+                  <div>
+                  <p>
+                    <span className="text-sm text-gray-500">Posted by </span>
+                      <span className="font-medium text-gray-700">{post.userName}</span> 
+                      <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
+                    </p>
+                    <CardTitle className = "pb-4">{post.title}</CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>{post.content}</CardContent>
+              <CardFooter className = "p-4 pt-0">
+                <Button onClick={() => handleLikePost(post.id)}>
+                  {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
+                </Button>
+                <div className = "pl-4">
+                <Button onClick={() => navigateTo('post', post)}>
+                  Comment ({countTotalComments(post.comments)})
+                </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PostPage = () => {
+  const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+
+  if (!selectedPost) {
+    return <div>No post selected.</div>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <p>
+        <span className="text-sm text-gray-500">Posted by </span>
+        <span className="font-medium text-gray-700">{selectedPost.userName}</span>
+        <span className="text-sm text-gray-500"> •{formatDate(selectedPost.createdAt.seconds)}• </span>
+      </p>
+      <h2 className="text-3xl font-bold mb-6 pl-5">{selectedPost.title}</h2>
+      <div className="mt-4 pl-5 bg-white rounded-lg p-4 shadow-md">
+        {selectedPost.content}
+      </div>
+      <CardFooter className = "pt-4">
+        <Button onClick={() => navigateTo('forum')}>
+          Back to Forum
+        </Button>
+        <div className = "pl-4">
+          <Button onClick={() => handleLikePost(selectedPost.id)}>
+            {selectedPost.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({selectedPost.likes?.length || 0})
           </Button>
         </div>
-        <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
-        {posts.length === 0 ? (
-          <p>No posts available yet. Be the first to start a discussion!</p>
+      </CardFooter>
+      <div className="mt-4 ml-8">
+        <h4 className="text-lg font-semibold pb-4">Comments</h4>
+        {selectedPost.comments.length === 0 ? (
+          <p>There are no comments, add to the discussion!</p>
         ) : (
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <Card key={post.id}>
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div>
-                      <CardTitle className = "pb-4">{post.title}</CardTitle>
-                      <p>
-                      <span className="text-sm text-gray-500">Posted by </span>
-                        <span className="font-medium text-gray-700">{post.userName}</span> 
-                        <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>{post.content}</CardContent>
-                <CardFooter>
-                  <Button onClick={() => handleLikePost(post.id)}>
-                    {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
-                  </Button>
-                </CardFooter>
-                <div className="mt-4 ml-8">
-                  <h4 className="text-lg font-semibold pb-4 ">Comments</h4>
-                  {post.comments.slice(0, showAllComments[post.id] ? post.comments.length : 3).map((comment) => (
-                    <CommentComponent key={comment.id} comment={comment} postId={post.id} />
-                  ))}
-                  {post.comments.length > 3 && (
-                    <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}>
-                      {showAllComments[post.id] ? 'Show less comments' : `See more comments (${countHiddenComments(post.comments, 3)})`}
-                    </Button>
-                  )}
-                  
-                  <Textarea ref={(el) => { commentRefs.current[post.id] = el }} placeholder="Add a comment..." className="mt-2 ml-4 w-11/12" />
-                  <Button onClick={() => handleCommentSubmit(post.id)} className="mt-2 ml-4">
-                    Submit Comment
-                  </Button>
-                 
-                </div>
-              </Card>
-            ))}
-          </div>
+          selectedPost.comments.slice(0, showAllComments[selectedPost.id] ? selectedPost.comments.length : 3).map((comment) => (
+            <CommentComponent key={comment.id} comment={comment} postId={selectedPost.id} />
+          ))
         )}
+        {selectedPost.comments.length > 3 && (
+          <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [selectedPost.id]: !prev[selectedPost.id] }))}>
+            {showAllComments[selectedPost.id] ? 'Show less comments' : `See more comments (${countHiddenComments(selectedPost.comments, 3)})`}
+          </Button>
+        )}
+        <Textarea ref={(el) => { commentRefs.current[selectedPost.id] = el }} placeholder="Add a comment..." className="mt-2 ml-4 w-11/12" />
+        <Button onClick={() => handleCommentSubmit(selectedPost.id)} className="mt-2 ml-4">
+          Submit Comment
+        </Button>
+        {currentPage === 'post' && error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   // Comment component to handle nested comments
   
@@ -375,14 +433,24 @@ const countReplies = (replies: Comment[]): number => {
   return replies.reduce((count, reply) => {
     return count + 1 + countReplies(reply.replies);
   }, 0);
-};
-const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
-  const [showReplies, setShowReplies] = useState(false);
-  const [showAllReplies, setShowAllReplies] = useState(false);
-  const [showReplyBox, setShowReplyBox] = useState(false);
-  //const replyRef = useRef<HTMLTextAreaElement | null>(null);
+};const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
+  const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
+  const [showAllReplies, setShowAllReplies] = useState<{ [key: string]: boolean }>({});
+  const [showReplyBox, setShowReplyBox] = useState<{ [key: string]: boolean }>({});
 
   const visibleRepliesCount = 2; // Number of replies to show initially
+
+  const toggleShowReplies = (commentId: string) => {
+    setShowReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  };
+
+  const toggleShowAllReplies = (commentId: string) => {
+    setShowAllReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  };
+
+  const toggleShowReplyBox = (commentId: string) => {
+    setShowReplyBox((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+  };
 
   return (
     <div className="comment-container">
@@ -391,29 +459,29 @@ const CommentComponent = ({ comment, postId }: { comment: Comment, postId: strin
           <span className="font-medium text-gray-700">{comment.userName}</span> 
           <span className="text-sm text-gray-500"> •{formatDate(comment.createdAt.seconds)}•</span>
         </p>
-        <p className = "mt-2 ml-4 pr-4">{comment.content}</p>
+        <p className="mt-2 ml-4 pr-4">{comment.content}</p>
         {comment.replies.length > 0 && (
-          <Button variant="link" onClick={() => setShowReplies(!showReplies)}>
-            {showReplies ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+          <Button variant="link" onClick={() => toggleShowReplies(comment.id)}>
+            {showReplies[comment.id] ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
           </Button>
         )}
-        <Button variant="link" onClick={() => setShowReplyBox(!showReplyBox)}>
-          {showReplyBox ? 'Cancel' : 'Reply'}
+        <Button variant="link" onClick={() => toggleShowReplyBox(comment.id)}>
+          {showReplyBox[comment.id] ? 'Cancel' : 'Reply'}
         </Button>
       </div>
-      {showReplies && (
+      {showReplies[comment.id] && (
         <div>
-          {comment.replies.slice(0, showAllReplies ? comment.replies.length : visibleRepliesCount).map((reply) => (
+          {comment.replies.slice(0, showAllReplies[comment.id] ? comment.replies.length : visibleRepliesCount).map((reply) => (
             <CommentComponent key={reply.id} comment={reply} postId={postId} />
           ))}
           {comment.replies.length > visibleRepliesCount && (
-            <Button variant="link" onClick={() => setShowAllReplies(!showAllReplies)}>
-              {showAllReplies ? 'Show less replies' : `See more replies (${countReplies(comment.replies.slice(visibleRepliesCount))})`}
+            <Button variant="link" onClick={() => toggleShowAllReplies(comment.id)}>
+              {showAllReplies[comment.id] ? 'Show less replies' : `See more replies (${countReplies(comment.replies.slice(visibleRepliesCount))})`}
             </Button>
           )}
         </div>
       )}
-      {showReplyBox && (
+      {showReplyBox[comment.id] && (
         <div className="reply-box">
           <Textarea
             ref={(el) => { replyRefs.current[comment.id] = el }}
@@ -442,6 +510,7 @@ const CommentComponent = ({ comment, postId }: { comment: Comment, postId: strin
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'forums' && <ForumsPage />}
         {currentPage === 'forum' && <ForumPage />}
+        {currentPage === 'post' && <PostPage />}
       </main>
     </div>
   )
