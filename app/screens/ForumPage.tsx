@@ -558,12 +558,14 @@ const countReplies = (replies: Comment[]): number => {
     setShowReplyBox((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
   };
 
+  const userName = useUserName(comment.userEmail);
+
   return (
     <div className="comment-container">
       <div className="comment-content">
         <p>
           <span className="relative group font-medium text-gray-700">
-            {useUserName(comment.userEmail)}
+            {userName}
             <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
               {comment.userEmail}
             </span>
