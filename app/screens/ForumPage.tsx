@@ -297,6 +297,25 @@ export default function DebateForum() {
     return userName;
   };
 
+  const useUserNames = (posts: Post[]) => {
+    const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
+  
+    useEffect(() => {
+      const fetchUserNames = async () => {
+        const names = await Promise.all(
+          posts.map(async (post) => {
+            const name = await getUserName(post.userEmail);
+            return { [post.id]: name };
+          })
+        );
+        setUserNames(Object.assign({}, ...names));
+      };
+      fetchUserNames();
+    }, [posts]);
+  
+    return userNames;
+  };
+
   // Handle navigation between pages
   const navigateTo = (page: string, post?: Post) => {
     setSelectedPost(post || null);
@@ -406,18 +425,12 @@ const countTotalComments = (comments: Comment[]): number => {
     return count + 1 + countTotalComments(comment.replies);
   }, 0);
 };
-
 const ForumPage = () => {
-  //const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
-
   if (!currentForum) {
     return <div>Please select a forum to enter.</div>;
   }
 
-  const userNames = posts.reduce((acc, post) => {
-    acc[post.id] = useUserName(post.userEmail);
-    return acc;
-  }, {} as { [key: string]: string });
+  const userNames = useUserNames(posts);
 
   return (
     <div className="container mx-auto px-4 py-8">
