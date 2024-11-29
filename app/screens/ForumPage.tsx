@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc  , setDoc, where, getDocs } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 import './ForumPage.css'; // Import the CSS file for curved lines
@@ -38,6 +38,8 @@ export default function DebateForum() {
   const [error, setError] = useState<string>('')
   const [user, setUser] = useState<User | null>(null) // User authentication state
   const [selectedPost, setSelectedPost] = useState<Post | null>(null); // State to hold the selected post
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOption, setSortOption] = useState<string>('newest');
 
   const titleRef = useRef<HTMLInputElement>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
@@ -153,20 +155,16 @@ export default function DebateForum() {
         await updateDoc(postRef, {
           likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
         });
+        // Fetch the updated post from Firestore to ensure the state is accurate
+        const updatedPostDoc = await getDoc(postRef);
+        const updatedPost = { id: updatedPostDoc.id, ...updatedPostDoc.data() } as Post;
         // Update local state
         setPosts((prevPosts) =>
-          prevPosts.map((p) =>
-            p.id === postId
-              ? { ...p, likes: isLiked ? p.likes.filter((uid) => uid !== user.uid) : [...p.likes, user.uid] }
-              : p
-          )
+          prevPosts.map((p) => (p.id === postId ? updatedPost : p))
         );
         // Refresh the selected post if it is the current post
         if (selectedPost && selectedPost.id === postId) {
-          setSelectedPost({
-            ...selectedPost,
-            likes: isLiked ? selectedPost.likes.filter((uid) => uid !== user.uid) : [...selectedPost.likes, user.uid],
-          });
+          setSelectedPost(updatedPost);
         }
       } catch (error) {
         console.error('Error updating likes:', error);
@@ -297,25 +295,6 @@ export default function DebateForum() {
     return userName;
   };
 
-  const useUserNames = (posts: Post[]) => {
-    const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
-  
-    useEffect(() => {
-      const fetchUserNames = async () => {
-        const names = await Promise.all(
-          posts.map(async (post) => {
-            const name = await getUserName(post.userEmail);
-            return { [post.id]: name };
-          })
-        );
-        setUserNames(Object.assign({}, ...names));
-      };
-      fetchUserNames();
-    }, [posts]);
-  
-    return userNames;
-  };
-
   // Handle navigation between pages
   const navigateTo = (page: string, post?: Post) => {
     setSelectedPost(post || null);
@@ -425,12 +404,31 @@ const countTotalComments = (comments: Comment[]): number => {
     return count + 1 + countTotalComments(comment.replies);
   }, 0);
 };
-const ForumPage = () => {
-  const userNames = useUserNames(posts);
 
+// Filter and sort posts
+const filteredPosts = posts
+  .filter((post) => post.title.toLowerCase().includes(searchQuery.toLowerCase()) || post.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  .sort((a, b) => {
+    if (sortOption === 'newest') {
+      return b.createdAt.seconds - a.createdAt.seconds;
+    } else if (sortOption === 'oldest') {
+      return a.createdAt.seconds - b.createdAt.seconds;
+    } else if (sortOption === 'mostLiked') {
+      return b.likes.length - a.likes.length;
+    }
+    return 0;
+  });
+
+const ForumPage = () => {
   if (!currentForum) {
     return <div>Please select a forum to enter.</div>;
   }
+
+  // Fetch user names for all posts
+  const userNames = posts.reduce((acc, post) => {
+    acc[post.id] = useUserName(post.userEmail);
+    return acc;
+  }, {} as { [key: string]: string });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -444,12 +442,25 @@ const ForumPage = () => {
           {loading ? 'Submitting...' : 'Submit Post'}
         </Button>
       </div>
+      <div className="mb-8">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search posts..."
+          className="mb-4"
+        />
+        <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="mostLiked">Most Liked</option>
+        </select>
+      </div>
       <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
-      {posts.length === 0 ? (
+      {filteredPosts.length === 0 ? (
         <p>No posts available yet. Be the first to start a discussion!</p>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <Card key={post.id}>
               <CardHeader>
                 <div className="flex items-center">
