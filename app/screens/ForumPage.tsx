@@ -424,6 +424,22 @@ const ForumPage = () => {
     return <div>Please select a forum to enter.</div>;
   }
 
+  const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    const fetchUserNames = async () => {
+      const names = await Promise.all(
+        filteredPosts.map(async (post) => {
+          const userName = await getUserName(post.userEmail);
+          return { [post.id]: userName };
+        })
+      );
+      setUserNames(Object.assign({}, ...names));
+    };
+
+    fetchUserNames();
+  }, [filteredPosts]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
@@ -455,7 +471,7 @@ const ForumPage = () => {
       ) : (
         <div className="space-y-4">
           {filteredPosts.map((post) => {
-            const userName = useUserName(post.userEmail); // Move useUserName hook call here
+            const userName = userNames[post.id] || post.userEmail;
             return (
               <Card key={post.id}>
                 <CardHeader>
