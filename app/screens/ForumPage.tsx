@@ -424,12 +424,6 @@ const ForumPage = () => {
     return <div>Please select a forum to enter.</div>;
   }
 
-  // Fetch user names for all posts
-  const userNames = posts.reduce((acc, post) => {
-    acc[post.id] = useUserName(post.userEmail);
-    return acc;
-  }, {} as { [key: string]: string });
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
@@ -460,38 +454,41 @@ const ForumPage = () => {
         <p>No posts available yet. Be the first to start a discussion!</p>
       ) : (
         <div className="space-y-4">
-          {filteredPosts.map((post) => (
-            <Card key={post.id}>
-              <CardHeader>
-                <div className="flex items-center">
-                  <div>
-                    <p>
-                      <span className="text-sm text-gray-500">Posted by </span>
-                      <span className="relative group font-medium text-gray-700">
-                        {userNames[post.id]}
-                        <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-                          {post.userEmail}
+          {filteredPosts.map((post) => {
+            const userName = useUserName(post.userEmail); // Move useUserName hook call here
+            return (
+              <Card key={post.id}>
+                <CardHeader>
+                  <div className="flex items-center">
+                    <div>
+                      <p>
+                        <span className="text-sm text-gray-500">Posted by </span>
+                        <span className="relative group font-medium text-gray-700">
+                          {userName}
+                          <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                            {post.userEmail}
+                          </span>
                         </span>
-                      </span>
-                      <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
-                    </p>
-                    <CardTitle className="pb-4">{post.title}</CardTitle>
+                        <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
+                      </p>
+                      <CardTitle className="pb-4">{post.title}</CardTitle>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>{post.content}</CardContent>
-              <CardFooter className="p-4 pt-0">
-                <Button onClick={() => handleLikePost(post.id)}>
-                  {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
-                </Button>
-                <div className="pl-4">
-                  <Button onClick={() => navigateTo('post', post)}>
-                    Comments ({countTotalComments(post.comments)})
+                </CardHeader>
+                <CardContent>{post.content}</CardContent>
+                <CardFooter className="p-4 pt-0">
+                  <Button onClick={() => handleLikePost(post.id)}>
+                    {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
                   </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+                  <div className="pl-4">
+                    <Button onClick={() => navigateTo('post', post)}>
+                      Comments ({countTotalComments(post.comments)})
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
