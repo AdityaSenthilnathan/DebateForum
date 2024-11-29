@@ -40,11 +40,26 @@ export default function DebateForum() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null); // State to hold the selected post
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('newest');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
 
   const titleRef = useRef<HTMLInputElement>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
   const commentRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({})
   const replyRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({})
+
+  const handleSearch = () => {
+    if (searchInputRef.current) {
+      setSearchQuery(searchInputRef.current.value);
+    }
+  };
+
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.value = searchQuery;
+    }
+  }, [searchQuery]);
+  
 
   // Fetch the user authentication status on mount
   useEffect(() => {
@@ -314,45 +329,60 @@ export default function DebateForum() {
 
   // Home page UI
   const HomePage = () => (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-6 text-center">Debate Skills Improvement Forum</h1>
-      <p className="text-xl text-center mb-8">
-        Welcome to the premier online platform for high school debaters to refine their skills across various debate formats.
-      </p>
-      <div className="mt-8 text-center">
-        {user ? (
-          <>
-            <Button onClick={() => navigateTo('forums')} size="lg">
-              Explore Forums
-            </Button>
-            <div className="mt-4">
-              <p className='pb-20'>
-                Welcome,
-                <span className="relative group pl-1">
-                  <span>{user.displayName || user.email}</span>
-                  {user.displayName && (
-                    <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-                      {user.email}
-                    </span>
-                  )}
-                </span>
-                !
-              </p>
-              <Button onClick={handleSignOut} size="lg">
-                Log Out
-              </Button>
-              <p className="text-center">Made by Aditya Senthilnathan</p>
-            </div>
-          </>
-        ) : (
-          <>
-            <Button onClick={() => navigateTo('forums')} size="lg">
-              Explore Forums
-            </Button>
-          </>
-        )}
-      </div>
+    <div className="container mx-auto px-4 py-8 pt-20">
+  <h1 className="text-4xl font-bold mb-6 text-center">Debate Skills Improvement Forum</h1>
+  <p className="text-xl text-center mb-8">
+    Welcome to the premier online platform for high school debaters to refine their skills across various debate formats.
+  </p>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8 pt-10">
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-semibold mb-2">Learn from Experts</h2>
+      <p className="text-gray-600">Gain insights and tips from experienced debaters and coaches.</p>
     </div>
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-semibold mb-2">Practice Debates</h2>
+      <p className="text-gray-600">Participate in practice debates to hone your skills.</p>
+    </div>
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-semibold mb-2">Community Support</h2>
+      <p className="text-gray-600">Join a community of like-minded individuals who share your passion for debate.</p>
+    </div>
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-semibold mb-2">Resources</h2>
+      <p className="text-gray-600">Access a wealth of resources including articles, videos, and more.</p>
+    </div>
+  </div>
+  <div className="mt-8 text-center">
+    {user ? (
+      <>
+        <p className='pb-10 pt-20'>
+          Welcome,
+          <span className="relative group pl-1">
+            <span>{user.displayName || user.email}</span>
+            {user.displayName && (
+              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                {user.email}
+              </span>
+            )}
+          </span>
+          !
+        </p>
+        <Button onClick={() => navigateTo('forums')} size="lg">
+          Explore Forums
+        </Button>
+        <div className="mt-4">
+          <p className="text-center pt-">Made by Aditya Senthilnathan</p>
+        </div>
+      </>
+    ) : (
+      <>
+        <Button onClick={() => navigateTo('forums')} size="lg">
+          Explore Forums
+        </Button>
+      </>
+    )}
+  </div>
+</div>
   )
 
   // Forums page UI
@@ -421,6 +451,7 @@ export default function DebateForum() {
 
   const ForumPage = () => {
     const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
+    
     useEffect(() => {
       const fetchUserNames = async () => {
         const names = await Promise.all(
@@ -448,22 +479,29 @@ export default function DebateForum() {
           <Input ref={titleRef} placeholder="Title of your question" />
           <Textarea ref={contentRef} placeholder="Provide details about your question..." />
           {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
+          <div className='pl-2'>
           <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
             {loading ? 'Submitting...' : 'Submit Post'}
           </Button>
+          </div>
         </div>
-        <div className="mb-8">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search posts..."
-            className="mb-4"
-          />
+        <div className="mb-8 ">
+        <Input
+          ref={searchInputRef}
+          defaultValue={searchQuery}
+          placeholder="Search posts..."
+          className="mb-4"
+        />
+        <div className='pl-2 space-x-4'>
+        <Button onClick={handleSearch} className="mb-4">
+          Search
+        </Button>
           <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
             <option value="mostLiked">Most Liked</option>
           </select>
+          </div>
         </div>
         <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
         {filteredPosts.length === 0 ? (
@@ -706,12 +744,20 @@ export default function DebateForum() {
       <nav className="mx-auto py-4">
   <ul className="flex items-center justify-between w-full px-10">
     <img src="/favicon.png" alt="Logo" className="w-14 h-14" />
-    <div className="flex-1 flex justify-center items-center space-x-4">
+    <div className="flex-1 flex  items-center space-x-4 pl-20">
       <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
       <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
       <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
     </div>
-    <div className="w-14 h-14"></div> {/* Placeholder to balance the layout */}
+    
+    
+    <span className="relative group pr-3">
+              <span>{user?.email}</span>
+
+            </span>
+    <Button onClick={handleSignOut} size="lg">
+            Log Out
+          </Button>
   </ul>
 </nav>
       </header>
