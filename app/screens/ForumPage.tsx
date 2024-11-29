@@ -695,9 +695,7 @@ export default function DebateForum() {
             </Button>
           </div>
         </div>
-        <Button onClick={() => navigateTo('home')} className="mt-4">
-          Back to Home
-        </Button>
+        
       </div>
     );
   };
@@ -705,13 +703,17 @@ export default function DebateForum() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
-        <nav className="container mx-auto px-4 py-4">
-          <ul className="flex space-x-4">
-            <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
-            <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
-            <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
-          </ul>
-        </nav>
+      <nav className="mx-auto py-4">
+  <ul className="flex items-center justify-between w-full px-10">
+    <img src="/favicon.png" alt="Logo" className="w-14 h-14" />
+    <div className="flex-1 flex justify-center items-center space-x-4">
+      <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
+      <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
+      <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
+    </div>
+    <div className="w-14 h-14"></div> {/* Placeholder to balance the layout */}
+  </ul>
+</nav>
       </header>
       <main>
         {currentPage === 'home' && <HomePage />}
