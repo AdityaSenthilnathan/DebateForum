@@ -743,7 +743,7 @@ export default function DebateForum() {
       <header className="bg-white shadow">
       <nav className="mx-auto py-4">
   <ul className="flex items-center justify-between w-full px-10">
-    <img src="../favicon.png" alt="Logo" className="w-14 h-14" />
+    <img src="/favicon.png" alt="Logo" className="w-14 h-14" />
     <div className="flex-1 flex  items-center space-x-4 pl-20">
       <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
       <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
