@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc  , setDoc, where, getDocs } from 'firebase/firestore'
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 import './ForumPage.css'; // Import the CSS file for curved lines
@@ -145,10 +145,10 @@ export default function DebateForum() {
       setError('You must be logged in to like a post.');
       return;
     }
-  
+
     const postRef = doc(db, 'forums', currentForum, 'posts', postId);
     const post = posts.find((post) => post.id === postId);
-  
+
     if (post) {
       const isLiked = post.likes.includes(user.uid);
       try {
@@ -179,13 +179,13 @@ export default function DebateForum() {
       setError('You must be logged in to comment.');
       return;
     }
-  
+
     const commentContent = parentCommentId ? replyRefs.current[parentCommentId]?.value : commentRefs.current[postId]?.value;
     if (!commentContent) {
       if (currentPage === 'post') setError('Comment content is required.');
       return;
     }
-  
+
     const postRef = doc(db, 'forums', currentForum, 'posts', postId);
     const newComment = {
       id: `${postId}-${Date.now()}`, // Generate a unique ID for the comment
@@ -194,7 +194,7 @@ export default function DebateForum() {
       userEmail: user?.email || 'Anonymous',
       replies: [], // Initialize replies as an empty array
     };
-  
+
     try {
       if (parentCommentId) {
         // Add reply to a specific comment
@@ -280,10 +280,10 @@ export default function DebateForum() {
     }
     return email;
   };
-  
+
   const useUserName = (email: string) => {
     const [userName, setUserName] = useState<string>(email);
-  
+
     useEffect(() => {
       const fetchUserName = async () => {
         const name = await getUserName(email);
@@ -291,7 +291,7 @@ export default function DebateForum() {
       };
       fetchUserName();
     }, [email]);
-  
+
     return userName;
   };
 
@@ -365,7 +365,7 @@ export default function DebateForum() {
             <CardHeader>
               <CardTitle>{format}</CardTitle>
             </CardHeader>
-            <CardFooter className = "p-4 pt-0">
+            <CardFooter className="p-4 pt-0">
               <Button onClick={() => handleForumNavigation(format)}>
                 Enter Forum
               </Button>
@@ -386,340 +386,340 @@ export default function DebateForum() {
       return count + 1 + countReplies(comment.replies);
     }, 0);
   };
-  
+
   // Utility function to format date with short forms
-const formatDate = (seconds: number): string => {
-  const now = Date.now() / 1000;
-  const diff = now - seconds;
+  const formatDate = (seconds: number): string => {
+    const now = Date.now() / 1000;
+    const diff = now - seconds;
 
-  if (diff < 60) return `${Math.floor(diff)} sec ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
-  if (diff < 31536000) return `${Math.floor(diff / 86400)} days ago`;
-  return `${Math.floor(diff / 31536000)} yrs ago`;
-};
+    if (diff < 60) return `${Math.floor(diff)} sec ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+    if (diff < 31536000) return `${Math.floor(diff / 86400)} days ago`;
+    return `${Math.floor(diff / 31536000)} yrs ago`;
+  };
 
-const countTotalComments = (comments: Comment[]): number => {
-  return comments.reduce((count, comment) => {
-    return count + 1 + countTotalComments(comment.replies);
-  }, 0);
-};
+  const countTotalComments = (comments: Comment[]): number => {
+    return comments.reduce((count, comment) => {
+      return count + 1 + countTotalComments(comment.replies);
+    }, 0);
+  };
 
-// Filter and sort posts
-const filteredPosts = posts
-  .filter((post) => post.title.toLowerCase().includes(searchQuery.toLowerCase()) || post.content.toLowerCase().includes(searchQuery.toLowerCase()))
-  .sort((a, b) => {
-    if (sortOption === 'newest') {
-      return b.createdAt.seconds - a.createdAt.seconds;
-    } else if (sortOption === 'oldest') {
-      return a.createdAt.seconds - b.createdAt.seconds;
-    } else if (sortOption === 'mostLiked') {
-      return b.likes.length - a.likes.length;
+  // Filter and sort posts
+  const filteredPosts = posts
+    .filter((post) => post.title.toLowerCase().includes(searchQuery.toLowerCase()) || post.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortOption === 'newest') {
+        return b.createdAt.seconds - a.createdAt.seconds;
+      } else if (sortOption === 'oldest') {
+        return a.createdAt.seconds - b.createdAt.seconds;
+      } else if (sortOption === 'mostLiked') {
+        return b.likes.length - a.likes.length;
+      }
+      return 0;
+    });
+
+  const ForumPage = () => {
+    const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
+    useEffect(() => {
+      const fetchUserNames = async () => {
+        const names = await Promise.all(
+          filteredPosts.map(async (post) => {
+            const userName = await getUserName(post.userEmail);
+            return { [post.id]: userName };
+          })
+        );
+        setUserNames(Object.assign({}, ...names));
+      };
+
+      fetchUserNames();
+    }, [filteredPosts]);
+    if (!currentForum) {
+      return <div>Please select a forum to enter.</div>;
     }
-    return 0;
-  });
 
-const ForumPage = () => {
-  if (!currentForum) {
-    return <div>Please select a forum to enter.</div>;
-  }
 
-  const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
 
-  useEffect(() => {
-    const fetchUserNames = async () => {
-      const names = await Promise.all(
-        filteredPosts.map(async (post) => {
-          const userName = await getUserName(post.userEmail);
-          return { [post.id]: userName };
-        })
-      );
-      setUserNames(Object.assign({}, ...names));
-    };
-
-    fetchUserNames();
-  }, [filteredPosts]);
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
-        <Input ref={titleRef} placeholder="Title of your question" />
-        <Textarea ref={contentRef} placeholder="Provide details about your question..." />
-        {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
-        <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit Post'}
-        </Button>
-      </div>
-      <div className="mb-8">
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search posts..."
-          className="mb-4"
-        />
-        <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="mostLiked">Most Liked</option>
-        </select>
-      </div>
-      <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
-      {filteredPosts.length === 0 ? (
-        <p>No posts available yet. Be the first to start a discussion!</p>
-      ) : (
-        <div className="space-y-4">
-          {filteredPosts.map((post) => {
-            const userName = userNames[post.id] || post.userEmail;
-            return (
-              <Card key={post.id}>
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div>
-                      <p>
-                        <span className="text-sm text-gray-500">Posted by </span>
-                        <span className="relative group font-medium text-gray-700">
-                          {userName}
-                          <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-                            {post.userEmail}
-                          </span>
-                        </span>
-                        <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
-                      </p>
-                      <CardTitle className="pb-4">{post.title}</CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>{post.content}</CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Button onClick={() => handleLikePost(post.id)}>
-                    {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
-                  </Button>
-                  <div className="pl-4">
-                    <Button onClick={() => navigateTo('post', post)}>
-                      Comments ({countTotalComments(post.comments)})
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const PostPage = () => {
-  const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
-  const userName = useUserName(selectedPost?.userEmail || '');
-
-  if (!selectedPost) {
-    return <div>No post selected.</div>;
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <p>
-        <span className="text-sm text-gray-500">Posted by </span>
-        <span className="relative group font-medium text-gray-700">
-          {userName}
-          <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-            {selectedPost.userEmail}
-          </span>
-        </span>
-        <span className="text-sm text-gray-500"> •{formatDate(selectedPost.createdAt.seconds)}• </span>
-      </p>
-      <h2 className="text-3xl font-bold mb-6 pl-5">{selectedPost.title}</h2>
-      <div className="mt-4 pl-5 bg-white rounded-lg p-4 shadow-md">
-        {selectedPost.content}
-      </div>
-      <CardFooter className = "pt-4">
-        <Button onClick={() => navigateTo('forum')}>
-          Back to Forum
-        </Button>
-        <div className = "pl-4">
-          <Button onClick={() => handleLikePost(selectedPost.id)}>
-            {selectedPost.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({selectedPost.likes?.length || 0})
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
+          <Input ref={titleRef} placeholder="Title of your question" />
+          <Textarea ref={contentRef} placeholder="Provide details about your question..." />
+          {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
+          <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Post'}
           </Button>
         </div>
-      </CardFooter>
-      <div className="mt-4 ml-8">
-        <h4 className="text-lg font-semibold pb-4">Comments</h4>
-        {selectedPost.comments.length === 0 ? (
-          <p>There are no comments, add to the discussion!</p>
+        <div className="mb-8">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search posts..."
+            className="mb-4"
+          />
+          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="mostLiked">Most Liked</option>
+          </select>
+        </div>
+        <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
+        {filteredPosts.length === 0 ? (
+          <p>No posts available yet. Be the first to start a discussion!</p>
         ) : (
-          selectedPost.comments.slice(0, showAllComments[selectedPost.id] ? selectedPost.comments.length : 3).map((comment) => (
-            <CommentComponent key={comment.id} comment={comment} postId={selectedPost.id} />
-          ))
+          <div className="space-y-4">
+            {filteredPosts.map((post) => {
+              const userName = userNames[post.id] || post.userEmail;
+              return (
+                <Card key={post.id}>
+                  <CardHeader>
+                    <div className="flex items-center">
+                      <div>
+                        <p>
+                          <span className="text-sm text-gray-500">Posted by </span>
+                          <span className="relative group font-medium text-gray-700">
+                            {userName}
+                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                              {post.userEmail}
+                            </span>
+                          </span>
+                          <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
+                        </p>
+                        <CardTitle className="pb-4">{post.title}</CardTitle>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>{post.content}</CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button onClick={() => handleLikePost(post.id)}>
+                      {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
+                    </Button>
+                    <div className="pl-4">
+                      <Button onClick={() => navigateTo('post', post)}>
+                        Comments ({countTotalComments(post.comments)})
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
         )}
-        {selectedPost.comments.length > 3 && (
-          <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [selectedPost.id]: !prev[selectedPost.id] }))}>
-            {showAllComments[selectedPost.id] ? 'Show less comments' : `See more comments (${countHiddenComments(selectedPost.comments, 3)})`}
-          </Button>
-        )}
-        <Textarea ref={(el) => { commentRefs.current[selectedPost.id] = el }} placeholder="Add a comment..." className="mt-2 ml-4 w-11/12" />
-        <Button onClick={() => handleCommentSubmit(selectedPost.id)} className="mt-2 ml-4">
-          Submit Comment
-        </Button>
-        {currentPage === 'post' && error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
-    </div>
-  );
-};
-
-  // Comment component to handle nested comments
-  
-const countReplies = (replies: Comment[]): number => {
-  return replies.reduce((count, reply) => {
-    return count + 1 + countReplies(reply.replies);
-  }, 0);
-};const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
-  const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
-  const [showAllReplies, setShowAllReplies] = useState<{ [key: string]: boolean }>({});
-  const [showReplyBox, setShowReplyBox] = useState<{ [key: string]: boolean }>({});
-
-  const visibleRepliesCount = 2; // Number of replies to show initially
-
-  const toggleShowReplies = (commentId: string) => {
-    setShowReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+    );
   };
 
-  const toggleShowAllReplies = (commentId: string) => {
-    setShowAllReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
-  };
+  const PostPage = () => {
+    const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+    const userName = useUserName(selectedPost?.userEmail || '');
 
-  const toggleShowReplyBox = (commentId: string) => {
-    setShowReplyBox((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
-  };
+    if (!selectedPost) {
+      return <div>No post selected.</div>;
+    }
 
-  const userName = useUserName(comment.userEmail);
-
-  return (
-    <div className="comment-container">
-      <div className="comment-content">
+    return (
+      <div className="container mx-auto px-4 py-8">
         <p>
+          <span className="text-sm text-gray-500">Posted by </span>
           <span className="relative group font-medium text-gray-700">
             {userName}
             <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-              {comment.userEmail}
+              {selectedPost.userEmail}
             </span>
           </span>
-          <span className="text-sm text-gray-500"> •{formatDate(comment.createdAt.seconds)}•</span>
+          <span className="text-sm text-gray-500"> •{formatDate(selectedPost.createdAt.seconds)}• </span>
         </p>
-        <p className="mt-2 ml-4 pr-4">{comment.content}</p>
-        {comment.replies.length > 0 && (
-          <Button variant="link" onClick={() => toggleShowReplies(comment.id)}>
-            {showReplies[comment.id] ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+        <h2 className="text-3xl font-bold mb-6 pl-5">{selectedPost.title}</h2>
+        <div className="mt-4 pl-5 bg-white rounded-lg p-4 shadow-md">
+          {selectedPost.content}
+        </div>
+        <CardFooter className="pt-4">
+          <Button onClick={() => navigateTo('forum')}>
+            Back to Forum
           </Button>
-        )}
-        <Button variant="link" onClick={() => toggleShowReplyBox(comment.id)}>
-          {showReplyBox[comment.id] ? 'Cancel' : 'Reply'}
-        </Button>
-      </div>
-      {showReplies[comment.id] && (
-        <div>
-          {comment.replies.slice(0, showAllReplies[comment.id] ? comment.replies.length : visibleRepliesCount).map((reply) => (
-            <CommentComponent key={reply.id} comment={reply} postId={postId} />
-          ))}
-          {comment.replies.length > visibleRepliesCount && (
-            <Button variant="link" onClick={() => toggleShowAllReplies(comment.id)}>
-              {showAllReplies[comment.id] ? 'Show less replies' : `See more replies (${countReplies(comment.replies.slice(visibleRepliesCount))})`}
+          <div className="pl-4">
+            <Button onClick={() => handleLikePost(selectedPost.id)}>
+              {selectedPost.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({selectedPost.likes?.length || 0})
+            </Button>
+          </div>
+        </CardFooter>
+        <div className="mt-4 ml-8">
+          <h4 className="text-lg font-semibold pb-4">Comments</h4>
+          {selectedPost.comments.length === 0 ? (
+            <p>There are no comments, add to the discussion!</p>
+          ) : (
+            selectedPost.comments.slice(0, showAllComments[selectedPost.id] ? selectedPost.comments.length : 3).map((comment) => (
+              <CommentComponent key={comment.id} comment={comment} postId={selectedPost.id} />
+            ))
+          )}
+          {selectedPost.comments.length > 3 && (
+            <Button variant="link" onClick={() => setShowAllComments((prev) => ({ ...prev, [selectedPost.id]: !prev[selectedPost.id] }))}>
+              {showAllComments[selectedPost.id] ? 'Show less comments' : `See more comments (${countHiddenComments(selectedPost.comments, 3)})`}
             </Button>
           )}
-        </div>
-      )}
-      {showReplyBox[comment.id] && (
-        <div className="reply-box">
-          <Textarea
-            ref={(el) => { replyRefs.current[comment.id] = el }}
-            placeholder="Add a reply..."
-            className="mt-2 ml-4 w-11/12"
-          />
-          <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
-            Submit Reply
+          <Textarea ref={(el) => { commentRefs.current[selectedPost.id] = el }} placeholder="Add a comment..." className="mt-2 ml-4 w-11/12" />
+          <Button onClick={() => handleCommentSubmit(selectedPost.id)} className="mt-2 ml-4">
+            Submit Comment
           </Button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const AccountPage = () => {
-  const [newDisplayName, setNewDisplayName] = useState<string>('');
-  const [updateLoading, setUpdateLoading] = useState<boolean>(false);
-  const [updateError, setUpdateError] = useState<string>('');
-
-  const handleDisplayNameChange = async () => {
-    if (!newDisplayName) {
-      setUpdateError('Display name cannot be empty.');
-      return;
-    }
-
-    setUpdateLoading(true);
-    try {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        await setDoc(userDocRef, { displayName: newDisplayName }, { merge: true });
-        setUser({ ...currentUser, displayName: newDisplayName });
-        setUpdateError('');
-      }
-    } catch (error) {
-      console.error('Error updating display name:', error);
-      setUpdateError('Failed to update display name. Please try again later.');
-    }
-    setUpdateLoading(false);
-  };
-
-  if (!user) {
-    return <div>Please log in to view your account details.</div>;
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold mb-6">Account Details</h2>
-      <div className="bg-white rounded-lg p-4 shadow-md">
-        <p><strong>Name:</strong> {user.displayName || 'Anonymous'}</p>
-        <p><strong>Email:</strong> {user.email}</p>
-        <div className="mt-4">
-          <Input
-            value={newDisplayName}
-            onChange={(e) => setNewDisplayName(e.target.value)}
-            placeholder="New display name"
-          />
-          {updateError && <p className="text-red-500 mt-2">{updateError}</p>}
-          <Button onClick={handleDisplayNameChange} className="mt-2" disabled={updateLoading}>
-            {updateLoading ? 'Updating...' : 'Update Display Name'}
-          </Button>
+          {currentPage === 'post' && error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
       </div>
-      <Button onClick={() => navigateTo('home')} className="mt-4">
-        Back to Home
-      </Button>
+    );
+  };
+
+  // Comment component to handle nested comments
+
+  const countReplies = (replies: Comment[]): number => {
+    return replies.reduce((count, reply) => {
+      return count + 1 + countReplies(reply.replies);
+    }, 0);
+  }; const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
+    const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
+    const [showAllReplies, setShowAllReplies] = useState<{ [key: string]: boolean }>({});
+    const [showReplyBox, setShowReplyBox] = useState<{ [key: string]: boolean }>({});
+
+    const visibleRepliesCount = 2; // Number of replies to show initially
+
+    const toggleShowReplies = (commentId: string) => {
+      setShowReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+    };
+
+    const toggleShowAllReplies = (commentId: string) => {
+      setShowAllReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+    };
+
+    const toggleShowReplyBox = (commentId: string) => {
+      setShowReplyBox((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+    };
+
+    const userName = useUserName(comment.userEmail);
+
+    return (
+      <div className="comment-container">
+        <div className="comment-content">
+          <p>
+            <span className="relative group font-medium text-gray-700">
+              {userName}
+              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                {comment.userEmail}
+              </span>
+            </span>
+            <span className="text-sm text-gray-500"> •{formatDate(comment.createdAt.seconds)}•</span>
+          </p>
+          <p className="mt-2 ml-4 pr-4">{comment.content}</p>
+          {comment.replies.length > 0 && (
+            <Button variant="link" onClick={() => toggleShowReplies(comment.id)}>
+              {showReplies[comment.id] ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
+            </Button>
+          )}
+          <Button variant="link" onClick={() => toggleShowReplyBox(comment.id)}>
+            {showReplyBox[comment.id] ? 'Cancel' : 'Reply'}
+          </Button>
+        </div>
+        {showReplies[comment.id] && (
+          <div>
+            {comment.replies.slice(0, showAllReplies[comment.id] ? comment.replies.length : visibleRepliesCount).map((reply) => (
+              <CommentComponent key={reply.id} comment={reply} postId={postId} />
+            ))}
+            {comment.replies.length > visibleRepliesCount && (
+              <Button variant="link" onClick={() => toggleShowAllReplies(comment.id)}>
+                {showAllReplies[comment.id] ? 'Show less replies' : `See more replies (${countReplies(comment.replies.slice(visibleRepliesCount))})`}
+              </Button>
+            )}
+          </div>
+        )}
+        {showReplyBox[comment.id] && (
+          <div className="reply-box">
+            <Textarea
+              ref={(el) => { replyRefs.current[comment.id] = el }}
+              placeholder="Add a reply..."
+              className="mt-2 ml-4 w-11/12"
+            />
+            <Button onClick={() => handleCommentSubmit(postId, comment.id)} className="mt-2">
+              Submit Reply
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const AccountPage = () => {
+    const [newDisplayName, setNewDisplayName] = useState<string>('');
+    const [updateLoading, setUpdateLoading] = useState<boolean>(false);
+    const [updateError, setUpdateError] = useState<string>('');
+
+    const handleDisplayNameChange = async () => {
+      if (!newDisplayName) {
+        setUpdateError('Display name cannot be empty.');
+        return;
+      }
+
+      setUpdateLoading(true);
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          await setDoc(userDocRef, { displayName: newDisplayName }, { merge: true });
+          setUser({ ...currentUser, displayName: newDisplayName });
+          setUpdateError('');
+        }
+      } catch (error) {
+        console.error('Error updating display name:', error);
+        setUpdateError('Failed to update display name. Please try again later.');
+      }
+      setUpdateLoading(false);
+    };
+
+    if (!user) {
+      return <div>Please log in to view your account details.</div>;
+    }
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold mb-6">Account Details</h2>
+        <div className="bg-white rounded-lg p-4 shadow-md">
+          <p><strong>Name:</strong> {user.displayName || 'Anonymous'}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+          <div className="mt-4">
+            <Input
+              value={newDisplayName}
+              onChange={(e) => setNewDisplayName(e.target.value)}
+              placeholder="New display name"
+            />
+            {updateError && <p className="text-red-500 mt-2">{updateError}</p>}
+            <Button onClick={handleDisplayNameChange} className="mt-2" disabled={updateLoading}>
+              {updateLoading ? 'Updating...' : 'Update Display Name'}
+            </Button>
+          </div>
+        </div>
+        <Button onClick={() => navigateTo('home')} className="mt-4">
+          Back to Home
+        </Button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <nav className="container mx-auto px-4 py-4">
+          <ul className="flex space-x-4">
+            <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
+            <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
+            <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
+          </ul>
+        </nav>
+      </header>
+      <main>
+        {currentPage === 'home' && <HomePage />}
+        {currentPage === 'forums' && <ForumsPage />}
+        {currentPage === 'forum' && <ForumPage />}
+        {currentPage === 'post' && <PostPage />}
+        {currentPage === 'account' && <AccountPage />}
+      </main>
     </div>
   );
-};
-
-return (
-  <div className="min-h-screen bg-gray-100">
-    <header className="bg-white shadow">
-      <nav className="container mx-auto px-4 py-4">
-        <ul className="flex space-x-4">
-         <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
-          <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
-          <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
-        </ul>
-      </nav>
-    </header>
-    <main>
-      {currentPage === 'home' && <HomePage />}
-      {currentPage === 'forums' && <ForumsPage />}
-      {currentPage === 'forum' && <ForumPage />}
-      {currentPage === 'post' && <PostPage />}
-      {currentPage === 'account' && <AccountPage />}
-    </main>
-  </div>
-);
 }
