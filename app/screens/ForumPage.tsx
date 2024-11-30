@@ -188,6 +188,8 @@ export default function DebateForum() {
     }
   };
 
+
+  
   // Handle comment submission
   const handleCommentSubmit = async (postId: string, parentCommentId?: string) => {
     if (!user) {
@@ -347,7 +349,7 @@ export default function DebateForum() {
           </span>
           !
         </p>
-        </>
+        </> 
         ) : (<></>)}
         <h2 className="text-5xl font-extrabold text-black mb-6">Welcome to DebateHub</h2>
         <p className="text-xl text-black-200 mb-8 max-w-2xl mx-auto">
@@ -555,7 +557,12 @@ export default function DebateForum() {
 
     return (
       <div className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold mb-6">{currentForum} Forum</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold">{currentForum} Forum</h2>
+          <Button onClick={() => navigateTo('forums')}>
+            Back
+          </Button>
+        </div>
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
           <Input ref={titleRef} placeholder="Title of your question" />
