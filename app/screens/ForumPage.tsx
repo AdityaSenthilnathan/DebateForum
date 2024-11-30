@@ -569,6 +569,7 @@ export default function DebateForum() {
         </div>
 
         <div className="mb-8 pt-5">
+          <h3 className="text-xl font-semibold mb-4 pl-1">Search Posts</h3>
           <Input
             ref={searchInputRef}
             defaultValue={searchQuery}
