@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs, deleteDoc } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 
@@ -14,11 +14,13 @@ import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
 import { MessageCircle } from "lucide-react"
 import { ThumbsUp } from "lucide-react"
+import { MoreVertical } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 interface Post {
+  createdAt: any
   id: string;
   title: string;
   content: string;
-  createdAt: { seconds: number }; // Firestore timestamp format
   userEmail: string;
   likes: string[]; // Array of user IDs who liked the post
   comments: Comment[]; // Array of comments
@@ -330,6 +332,67 @@ export default function DebateForum() {
       console.error('No valid forum selected.')
     }
   }
+
+  // Handle post deletion
+  const handleDeletePost = async (postId: string) => {
+    if (!user) {
+      setError('You must be logged in to delete a post.');
+      return;
+    }
+  
+    const confirmDelete = window.confirm('Are you sure you want to delete this post? This action cannot be undone.');
+    if (!confirmDelete) return;
+  
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId);
+    try {
+      await deleteDoc(postRef);
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      setSelectedPost(null);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setError('Failed to delete the post. Please try again later.');
+    }
+  };
+  
+  // Handle comment deletion
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    if (!user) {
+      setError('You must be logged in to delete a comment.');
+      return;
+    }
+  
+    const confirmDelete = window.confirm('Are you sure you want to delete this comment? This action cannot be undone.');
+    if (!confirmDelete) return;
+  
+    const postRef = doc(db, 'forums', currentForum, 'posts', postId);
+    const post = posts.find((post) => post.id === postId);
+  
+    if (post) {
+      const updatedComments = deleteComment(post.comments, commentId);
+      try {
+        await updateDoc(postRef, { comments: updatedComments });
+        setPosts((prevPosts) =>
+          prevPosts.map((p) => (p.id === postId ? { ...p, comments: updatedComments } : p))
+        );
+        if (selectedPost && selectedPost.id === postId) {
+          setSelectedPost({ ...selectedPost, comments: updatedComments });
+        }
+      } catch (error) {
+        console.error('Error deleting comment:', error);
+        setError('Failed to delete the comment. Please try again later.');
+      }
+    }
+  };
+  
+  // Recursive function to delete a comment and its replies
+  const deleteComment = (comments: Comment[], commentId: string): Comment[] => {
+    return comments.filter((comment) => {
+      if (comment.id === commentId) return false;
+      comment.replies = deleteComment(comment.replies, commentId);
+      return true;
+    });
+  };
+  
 
   // Home page UI
   const HomePage = () => (
@@ -658,6 +721,18 @@ export default function DebateForum() {
                               <MessageCircle className="h-5 w-5 text-gray-400 mr-1" />
                               <span className="text-sm text-gray-500">{countTotalComments(post.comments)} replies</span>
                             </div>
+                            {user?.email === post.userEmail && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger onClick={() => {}}>
+                                  <MoreVertical className="h-5 w-5 text-gray-400 cursor-pointer" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent show={true}>
+                                  <DropdownMenuItem onClick={() => handleDeletePost(post.id)}>
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
                         </div>
                         <CardTitle className="pt-2">{post.title}</CardTitle>
@@ -788,9 +863,23 @@ export default function DebateForum() {
               {showReplies[comment.id] ? 'Hide replies' : `Show replies (${countReplies(comment.replies)})`}
             </Button>
           )}
+          <div className='flex items-center'>
           <Button variant="link" onClick={() => toggleShowReplyBox(comment.id)}>
             {showReplyBox[comment.id] ? 'Cancel' : 'Reply'}
           </Button>
+          {user?.email === comment.userEmail && (
+            <DropdownMenu>
+              <DropdownMenuTrigger onClick={() => {}}>
+                <MoreVertical className="h-4 w-4 text-gray-400 cursor-pointer pt-1" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent show={false}>
+                <DropdownMenuItem onClick={() => handleDeleteComment(postId, comment.id)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          </div>
         </div>
         {showReplies[comment.id] && (
           <div>
