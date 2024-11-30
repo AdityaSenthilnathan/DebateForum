@@ -346,6 +346,9 @@ export default function DebateForum() {
                     Welcome,
                     <span className="relative group pl-1">
                       <span>{user.displayName || user.email}</span>
+                      <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
+                        {user.email}
+                      </span>
                     </span>
                     !
                   </p>
@@ -362,7 +365,7 @@ export default function DebateForum() {
             <div className="lg:flex-shrink-0 lg:w-1/2">
               <img
                 className="w-full object-cover rounded-lg shadow-lg"
-                src="https://www.shutterstock.com/image-vector/debate-before-vote-male-woman-600nw-2184567945.jpg"
+                src="./logo.png"
                 alt="Debate illustration"
               />
             </div>
@@ -577,20 +580,24 @@ export default function DebateForum() {
             <Button onClick={handleSearch} className="mb-4">
               Search
             </Button>
-            <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="mb-4 p-2 rounded-md text-md"
+            >
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
               <option value="mostLiked">Most Liked</option>
             </select>
           </div>
         </div>
-        
+
         <div className="flex items-center mb-4">
-  <h3 className="text-xl font-semibold mr-4 pl-1">Recent Discussions</h3>
-  <Button onClick={() => setShowNewDiscussion(!showNewDiscussion)}>
-    {showNewDiscussion ? 'Hide New Discussion' : 'Start a New Discussion'}
-  </Button>
-</div>
+          <h3 className="text-xl font-semibold mr-4 pl-1">Recent Discussions</h3>
+          <Button onClick={() => setShowNewDiscussion(!showNewDiscussion)}>
+            {showNewDiscussion ? 'Hide New Discussion' : 'Start a New Discussion'}
+          </Button>
+        </div>
         {showNewDiscussion && (
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
@@ -619,7 +626,7 @@ export default function DebateForum() {
                           <span className="text-sm text-gray-500">Posted by </span>
                           <span className="relative group font-medium text-gray-700">
                             {userName}
-                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
                               {post.userEmail}
                             </span>
                           </span>
@@ -651,6 +658,7 @@ export default function DebateForum() {
 
   const PostPage = () => {
     const [showAllComments, setShowAllComments] = useState<{ [key: string]: boolean }>({});
+    const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
     const userName = useUserName(selectedPost?.userEmail || '');
 
     if (!selectedPost) {
@@ -663,7 +671,7 @@ export default function DebateForum() {
           <span className="text-sm text-gray-500">Posted by </span>
           <span className="relative group font-medium text-gray-700">
             {userName}
-            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
               {selectedPost.userEmail}
             </span>
           </span>
@@ -689,7 +697,7 @@ export default function DebateForum() {
             <p>There are no comments, add to the discussion!</p>
           ) : (
             selectedPost.comments.slice(0, showAllComments[selectedPost.id] ? selectedPost.comments.length : 3).map((comment) => (
-              <CommentComponent key={comment.id} comment={comment} postId={selectedPost.id} />
+              <CommentComponent key={comment.id} comment={comment} postId={selectedPost.id} showReplies={showReplies} setShowReplies={setShowReplies} />
             ))
           )}
           {selectedPost.comments.length > 3 && (
@@ -713,10 +721,10 @@ export default function DebateForum() {
     return replies.reduce((count, reply) => {
       return count + 1 + countReplies(reply.replies);
     }, 0);
-  }; const CommentComponent = ({ comment, postId }: { comment: Comment, postId: string }) => {
-    const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
+  }; const CommentComponent = ({ comment, postId, showReplies, setShowReplies }: { comment: Comment, postId: string, showReplies: { [key: string]: boolean }, setShowReplies: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>> }) => {
     const [showAllReplies, setShowAllReplies] = useState<{ [key: string]: boolean }>({});
     const [showReplyBox, setShowReplyBox] = useState<{ [key: string]: boolean }>({});
+    const userName = useUserName(comment.userEmail);
 
     const visibleRepliesCount = 2; // Number of replies to show initially
 
@@ -732,15 +740,13 @@ export default function DebateForum() {
       setShowReplyBox((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
     };
 
-    const userName = useUserName(comment.userEmail);
-
     return (
       <div className="comment-container">
         <div className="comment-content">
           <p>
             <span className="relative group font-medium text-gray-700">
               {userName}
-              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
+              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
                 {comment.userEmail}
               </span>
             </span>
@@ -759,7 +765,7 @@ export default function DebateForum() {
         {showReplies[comment.id] && (
           <div>
             {comment.replies.slice(0, showAllReplies[comment.id] ? comment.replies.length : visibleRepliesCount).map((reply) => (
-              <CommentComponent key={reply.id} comment={reply} postId={postId} />
+              <CommentComponent key={reply.id} comment={reply} postId={postId} showReplies={showReplies} setShowReplies={setShowReplies} />
             ))}
             {comment.replies.length > visibleRepliesCount && (
               <Button variant="link" onClick={() => toggleShowAllReplies(comment.id)}>
@@ -851,7 +857,7 @@ export default function DebateForum() {
             </div>
 
 
-            <span className="relative group pr-3">
+            <span className="relative group pr-5">
               <span>{user?.email}</span>
 
             </span>
