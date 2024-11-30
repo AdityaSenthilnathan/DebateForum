@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
+
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
-
+import { MessageCircle, TrendingUp } from "lucide-react"
+import { ThumbsUp } from "lucide-react"
 interface Post {
   id: string;
   title: string;
@@ -76,7 +78,7 @@ export default function DebateForum() {
         if (userDoc.exists()) {
           setUser({ ...user, displayName: userDoc.data().displayName, email: user.email });
         } else {
-          const displayName = user.displayName || user.email;
+          const displayName = user.displayName ;
           await setDoc(userDocRef, { displayName, email: user.email });
           setUser({ ...user, displayName, email: user.email });
         }
@@ -293,7 +295,7 @@ export default function DebateForum() {
     const userQuery = query(collection(db, 'users'), where('email', '==', email));
     const querySnapshot = await getDocs(userQuery);
     if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].data().displayName || email;
+      return querySnapshot.docs[0].data().displayName;
     }
     return email;
   };
@@ -345,7 +347,7 @@ export default function DebateForum() {
                   <p className='pb-5 '>
                     Hello,
                     <span className="relative group pl-1">
-                      <span>{user.displayName || user.email}</span>
+                      <span>{user.displayName}</span>
                       <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
                         {user.email}
                       </span>
@@ -473,25 +475,51 @@ export default function DebateForum() {
   )
 
   // Forums page UI
-  const ForumsPage = () => (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold mb-6">Debate Forums</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {['Lincoln-Douglas', 'Parliamentary', 'Policy', 'Public Forum'].map((format) => (
-          <Card key={format}>
-            <CardHeader>
-              <CardTitle>{format}</CardTitle>
-            </CardHeader>
-            <CardFooter className="p-4 pt-0">
-              <Button onClick={() => handleForumNavigation(format)}>
-                Enter Forum
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+  const ForumsPage = () => {
+    const [forumPostCounts, setForumPostCounts] = useState<{ [key: string]: number }>({});
+
+    useEffect(() => {
+      const fetchForumPostCounts = async () => {
+        const forums = ['Lincoln-Douglas', 'Parliamentary', 'Policy', 'Public Forum'];
+        const counts = await Promise.all(
+          forums.map(async (forum) => {
+            const postsRef = collection(db, 'forums', forum, 'posts');
+            const snapshot = await getDocs(postsRef);
+            return { [forum]: snapshot.size };
+          })
+        );
+        setForumPostCounts(Object.assign({}, ...counts));
+      };
+
+      fetchForumPostCounts();
+    }, []);
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold mb-6">Debate Forums</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {['Lincoln-Douglas', 'Parliamentary', 'Policy', 'Public Forum'].map((format) => (
+            <Card key={format}>
+              <CardHeader>
+                <CardTitle>{format}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <MessageCircle className="h-5 w-5" />
+                    <span>{forumPostCounts[format] || 0} posts</span>
+                  </div>
+                  <Button variant="outline" onClick={() => handleForumNavigation(format)}>
+                    View Forum
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
-  )
+    );
+  };
 
   // Forum page UI (displays posts and new post form)
   const countHiddenComments = (comments: Comment[], visibleCount: number): number => {
@@ -553,106 +581,107 @@ export default function DebateForum() {
 
       fetchUserNames();
     }, [filteredPosts]);
+
     if (!currentForum) {
       return <div>Please select a forum to enter.</div>;
     }
 
-
-
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold pl-1">{currentForum} Forum</h2>
-          <Button onClick={() => navigateTo('forums')}>
-            Back
-          </Button>
-        </div>
-
-        <div className="mb-8 pt-5">
-          <h3 className="text-xl font-semibold mb-4 pl-1">Search Posts</h3>
-          <Input
-            ref={searchInputRef}
-            defaultValue={searchQuery}
-            placeholder="Search posts..."
-            className="mb-4"
-          />
-
-          <div className='pl-2 space-x-4'>
-            <Button onClick={handleSearch} className="mb-4">
-              Search
-            </Button>
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="mb-4 p-2 rounded-md text-md"
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="mostLiked">Most Liked</option>
-            </select>
+      <div className="bg-gray-100">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{currentForum} Debate Forum</h1>
           </div>
-        </div>
-
-        <div className="flex items-center mb-4">
-          <h3 className="text-xl font-semibold mr-4 pl-1">Recent Discussions</h3>
           <Button onClick={() => setShowNewDiscussion(!showNewDiscussion)}>
-            {showNewDiscussion ? 'Hide New Discussion' : 'Start a New Discussion'}
+            {showNewDiscussion ? 'Hide New Post' : 'Create New Post'}
           </Button>
         </div>
-        {showNewDiscussion && (
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
-            <Input ref={titleRef} placeholder="Title of your question" />
-            <Textarea ref={contentRef} placeholder="Provide details about your question..." />
-            {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
-            <div className='pl-2'>
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          {showNewDiscussion && (
+            <div className="mb-8">
+              <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
+              <Input ref={titleRef} placeholder="Title of your question" />
+              <Textarea ref={contentRef} placeholder="Provide details about your question..." />
+              {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
               <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
                 {loading ? 'Submitting...' : 'Submit Post'}
               </Button>
             </div>
+          )}
+        </div>
+        <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Recent Discussions</h2>
+              <div className="flex items-center space-x-4">
+              <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="ml-2 p-1.5 border rounded"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="mostLiked">Most Liked</option>
+                </select>
+                <Input ref={searchInputRef} defaultValue={searchQuery} placeholder="Search this forum" className="w-[300px]" />
+                <Button onClick={handleSearch} className="ml-2">Search</Button>
+              </div>
+            </div>
+            <div className="space-y-6">
+              {filteredPosts.length === 0 ? (
+                <p>No posts available yet. Be the first to start a discussion!</p>
+              ) : (
+                filteredPosts.map((post) => {
+                  const userName = userNames[post.id];
+                  return (
+                    <Card key={post.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p>
+                              <span className="text-sm text-gray-500">Posted by </span>
+                              <span className="relative group font-medium text-gray-700">
+                                {userName}
+                                <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
+                                  {post.userEmail}
+                                </span>
+                              </span>
+                              <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center">
+                              <ThumbsUp className="h-5 w-5 text-gray-400 mr-1" />
+                              <span className="text-sm text-gray-500">{post.likes.length}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MessageCircle className="h-5 w-5 text-gray-400 mr-1" />
+                              <span className="text-sm text-gray-500">{countTotalComments(post.comments)} replies</span>
+                            </div>
+                          </div>
+                        </div>
+                        <CardTitle className="pt-2">{post.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-700">{post.content}</p>
+                      </CardContent>
+                      <CardFooter className="p-4 pt-0">
+                        <Button onClick={() => handleLikePost(post.id)}>
+                          {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'}
+                        </Button>
+                        <div className="pl-4">
+                          <Button onClick={() => navigateTo('post', post)}>
+                            Comments
+                          </Button>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
           </div>
-        )}
-        {filteredPosts.length === 0 ? (
-          <p>No posts available yet. Be the first to start a discussion!</p>
-        ) : (
-          <div className="space-y-4">
-            {filteredPosts.map((post) => {
-              const userName = userNames[post.id] || post.userEmail;
-              return (
-                <Card key={post.id}>
-                  <CardHeader>
-                    <div className="flex items-center">
-                      <div>
-                        <p>
-                          <span className="text-sm text-gray-500">Posted by </span>
-                          <span className="relative group font-medium text-gray-700">
-                            {userName}
-                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
-                              {post.userEmail}
-                            </span>
-                          </span>
-                          <span className="text-sm text-gray-500"> •{formatDate(post.createdAt.seconds)}• </span>
-                        </p>
-                        <CardTitle className="pb-4">{post.title}</CardTitle>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>{post.content}</CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Button onClick={() => handleLikePost(post.id)}>
-                      {post.likes?.includes(user?.uid || '') ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
-                    </Button>
-                    <div className="pl-4">
-                      <Button onClick={() => navigateTo('post', post)}>
-                        Comments ({countTotalComments(post.comments)})
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+        </main>
       </div>
     );
   };
@@ -668,7 +697,7 @@ export default function DebateForum() {
 
     return (
       <div className="container mx-auto px-4 py-8">
-        <p>
+        <p className='pb-5'>
           <span className="text-sm text-gray-500">Posted by </span>
           <span className="relative group font-medium text-gray-700">
             {userName}
