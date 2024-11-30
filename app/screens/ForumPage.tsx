@@ -12,7 +12,7 @@ import { signOut, onAuthStateChanged, User } from 'firebase/auth'
 
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
-import { MessageCircle, TrendingUp } from "lucide-react"
+import { MessageCircle } from "lucide-react"
 import { ThumbsUp } from "lucide-react"
 interface Post {
   id: string;
