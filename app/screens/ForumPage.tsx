@@ -9,10 +9,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
 import { signOut, onAuthStateChanged, User } from 'firebase/auth'
-import Image from 'next/image'
+
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
-import { MessageCircle } from "lucide-react"
+import { MessageCircle, TrendingUp } from "lucide-react"
 import { ThumbsUp } from "lucide-react"
 interface Post {
   id: string;
@@ -365,12 +365,10 @@ export default function DebateForum() {
 
             {/* Image Content */}
             <div className="lg:flex-shrink-0 lg:w-1/2">
-              <Image
+            <img
                 className="w-full object-cover rounded-lg shadow-lg"
-                src="/logo.png"
+                src="./logo.png"
                 alt="Debate illustration"
-                width={500}
-                height={500}
               />
             </div>
           </div>
@@ -881,7 +879,7 @@ export default function DebateForum() {
       <header className="bg-white shadow">
         <nav className="mx-auto py-4">
           <ul className="flex items-center justify-between w-full px-10">
-            <Image src="/favicon.png" alt="Logo" className="w-14 h-14 rounded-md" width={56} height={56} />
+            <img src="./favicon.png" alt="Logo" className="w-14 h-14 rounded-md" />
             <div className="flex-1 flex  items-center space-x-4 pl-20">
               <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
               <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
