@@ -59,7 +59,7 @@ export default function DebateForum() {
       searchInputRef.current.value = searchQuery;
     }
   }, [searchQuery]);
-  
+
 
   // Fetch the user authentication status on mount
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function DebateForum() {
   };
 
 
-  
+
   // Handle comment submission
   const handleCommentSubmit = async (postId: string, parentCommentId?: string) => {
     if (!user) {
@@ -332,44 +332,44 @@ export default function DebateForum() {
   // Home page UI
   const HomePage = () => (
     <div className="container mx-auto px-4 py-8 ">
-  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-100 opacity-60 -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-100 opacity-60 -z-10"></div>
 
-{/* Content on top */}
-<div className="overflow-hidden">
-  <div className="mx-auto max-w-7xl px-6 pb-32 pt-36 sm:pt-60 lg:px-8 lg:pt-16">
-    <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
-      {/* Text Content */}
-      <div className="text-center lg:text-left">
-      {user ? (
-      <>
-        <p className='pb-5 '>
-          Welcome,
-          <span className="relative group pl-1">
-            <span>{user.displayName || user.email}</span>
-          </span>
-          !
-        </p>
-        </> 
-        ) : (<></>)}
-        <h2 className="text-5xl font-extrabold text-black mb-6">Welcome to DebateHub</h2>
-        <p className="text-xl text-black-200 mb-8 max-w-2xl mx-auto">
-          Elevate your debate skills, connect with peers, and explore diverse perspectives
-          in a vibrant community of high school debaters.
-        </p>
-      </div>
+      {/* Content on top */}
+      <div className="overflow-hidden">
+        <div className="mx-auto max-w-7xl px-6 pb-32 pt-36 sm:pt-60 lg:px-8 lg:pt-16">
+          <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
+            {/* Text Content */}
+            <div className="text-center lg:text-left">
+              {user ? (
+                <>
+                  <p className='pb-5 '>
+                    Welcome,
+                    <span className="relative group pl-1">
+                      <span>{user.displayName || user.email}</span>
+                    </span>
+                    !
+                  </p>
+                </>
+              ) : (<></>)}
+              <h2 className="text-5xl font-extrabold text-black mb-6">Welcome to DebateHub</h2>
+              <p className="text-xl text-black-200 mb-8 max-w-2xl mx-auto">
+                Elevate your debate skills, connect with peers, and explore diverse perspectives
+                in a vibrant community of high school debaters.
+              </p>
+            </div>
 
-      {/* Image Content */}
-      <div className="lg:flex-shrink-0 lg:w-1/2">
-        <img
-          className="w-full object-cover rounded-lg shadow-lg"
-          src="https://www.shutterstock.com/image-vector/debate-before-vote-male-woman-600nw-2184567945.jpg"
-          alt="Debate illustration"
-        />
+            {/* Image Content */}
+            <div className="lg:flex-shrink-0 lg:w-1/2">
+              <img
+                className="w-full object-cover rounded-lg shadow-lg"
+                src="https://www.shutterstock.com/image-vector/debate-before-vote-male-woman-600nw-2184567945.jpg"
+                alt="Debate illustration"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-  <div className="container mx-auto px-4 py-12 pb-0">
+      <div className="container mx-auto px-4 py-12 pb-0">
         <section className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="bg-white rounded-lg shadow-lg p-6 text-center">
             <svg
@@ -446,27 +446,27 @@ export default function DebateForum() {
           </div>
         </section>
       </div>
-   
-  <div className="mt-8 text-center">
-    {user ? (
-      <>
-        
-        <Button onClick={() => navigateTo('forums')} size="lg">
-          Explore Forums
-        </Button>
-        <div className="mt-4">
-          <p className="text-center pt-">Made by Aditya Senthilnathan</p>
-        </div>
-      </>
-    ) : (
-      <>
-        <Button onClick={() => navigateTo('forums')} size="lg">
-          Explore Forums
-        </Button>
-      </>
-    )}
-  </div>
-</div>
+
+      <div className="mt-8 text-center">
+        {user ? (
+          <>
+
+            <Button onClick={() => navigateTo('forums')} size="lg">
+              Explore Forums
+            </Button>
+            <div className="mt-4">
+              <p className="text-center pt-">Made by Aditya Senthilnathan</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <Button onClick={() => navigateTo('forums')} size="lg">
+              Explore Forums
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
   )
 
   // Forums page UI
@@ -535,7 +535,8 @@ export default function DebateForum() {
 
   const ForumPage = () => {
     const [userNames, setUserNames] = useState<{ [key: string]: string }>({});
-    
+    const [showNewDiscussion, setShowNewDiscussion] = useState<boolean>(false);
+
     useEffect(() => {
       const fetchUserNames = async () => {
         const names = await Promise.all(
@@ -558,41 +559,51 @@ export default function DebateForum() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold">{currentForum} Forum</h2>
+          <h2 className="text-3xl font-bold pl-1">{currentForum} Forum</h2>
           <Button onClick={() => navigateTo('forums')}>
             Back
           </Button>
         </div>
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
-          <Input ref={titleRef} placeholder="Title of your question" />
-          <Textarea ref={contentRef} placeholder="Provide details about your question..." />
-          {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
-          <div className='pl-2'>
-          <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Post'}
-          </Button>
+
+        <div className="mb-8 pt-5">
+          <Input
+            ref={searchInputRef}
+            defaultValue={searchQuery}
+            placeholder="Search posts..."
+            className="mb-4"
+          />
+
+          <div className='pl-2 space-x-4'>
+            <Button onClick={handleSearch} className="mb-4">
+              Search
+            </Button>
+            <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="mostLiked">Most Liked</option>
+            </select>
           </div>
         </div>
-        <div className="mb-8 ">
-        <Input
-          ref={searchInputRef}
-          defaultValue={searchQuery}
-          placeholder="Search posts..."
-          className="mb-4"
-        />
-        <div className='pl-2 space-x-4'>
-        <Button onClick={handleSearch} className="mb-4">
-          Search
-        </Button>
-          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="mb-4">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="mostLiked">Most Liked</option>
-          </select>
+        
+        <div className="flex items-center mb-4">
+  <h3 className="text-xl font-semibold mr-4 pl-1">Recent Discussions</h3>
+  <Button onClick={() => setShowNewDiscussion(!showNewDiscussion)}>
+    {showNewDiscussion ? 'Hide New Discussion' : 'Start a New Discussion'}
+  </Button>
+</div>
+        {showNewDiscussion && (
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">Start a New Discussion</h3>
+            <Input ref={titleRef} placeholder="Title of your question" />
+            <Textarea ref={contentRef} placeholder="Provide details about your question..." />
+            {currentPage === 'forum' && error && <p className="text-red-500 mt-2">{error}</p>}
+            <div className='pl-2'>
+              <Button onClick={handlePostSubmit} className="mt-4" disabled={loading}>
+                {loading ? 'Submitting...' : 'Submit Post'}
+              </Button>
+            </div>
           </div>
-        </div>
-        <h3 className="text-xl font-semibold mb-4">Recent Discussions</h3>
+        )}
         {filteredPosts.length === 0 ? (
           <p>No posts available yet. Be the first to start a discussion!</p>
         ) : (
@@ -822,7 +833,7 @@ export default function DebateForum() {
             </Button>
           </div>
         </div>
-        
+
       </div>
     );
   };
@@ -830,25 +841,25 @@ export default function DebateForum() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
-      <nav className="mx-auto py-4">
-  <ul className="flex items-center justify-between w-full px-10">
-  <img src="./favicon.png" alt="Logo" className="w-14 h-14 rounded-md" />
-    <div className="flex-1 flex  items-center space-x-4 pl-20">
-      <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
-      <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
-      <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
-    </div>
-    
-    
-    <span className="relative group pr-3">
+        <nav className="mx-auto py-4">
+          <ul className="flex items-center justify-between w-full px-10">
+            <img src="./favicon.png" alt="Logo" className="w-14 h-14 rounded-md" />
+            <div className="flex-1 flex  items-center space-x-4 pl-20">
+              <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
+              <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
+              <Button variant="ghost" onClick={() => navigateTo('account')}>Account</Button>
+            </div>
+
+
+            <span className="relative group pr-3">
               <span>{user?.email}</span>
 
             </span>
-    <Button onClick={handleSignOut} size="lg">
-            Log Out
-          </Button>
-  </ul>
-</nav>
+            <Button onClick={handleSignOut} size="lg">
+              Log Out
+            </Button>
+          </ul>
+        </nav>
       </header>
       <main>
         {currentPage === 'home' && <HomePage />}
