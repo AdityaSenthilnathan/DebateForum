@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../firebaseConfig';
+//import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 import SignUpModal from './SignUpModal'; // Import the SignUpModal component
 
 export default function SignIn() {
@@ -47,26 +47,6 @@ export default function SignIn() {
     }
   };
 
-  // Handle Sign In with Google
-  const handleGoogleSignIn = async () => {
-    try {
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      const user = userCredential.user;
-
-      if (!user.emailVerified) {
-        await signOut(auth);
-        setError('Please verify your email before signing in. Check your email for a confirmation link.');
-        return;
-      }
-
-      console.log('Successfully signed in with Google');
-      // You can redirect the user after successful login here
-    } catch (error) {
-      setError('Failed to sign in with Google. Please try again later.');
-      console.error('Error signing in with Google:', error);
-    }
-  };
-
   // Open Sign Up Modal
   const openSignUpModal = () => {
     setIsSignUpModalOpen(true);  // Set the modal state to open
@@ -85,44 +65,31 @@ export default function SignIn() {
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="email" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="google">Google</TabsTrigger>
-            </TabsList>
-            <TabsContent value="email">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                {error && showError && <p className="text-red-500">{error}</p>}
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">Sign In</Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="google">
-              <Button onClick={handleGoogleSignIn} className="w-full mt-4" variant="outline">
-                Sign in with Google
-              </Button>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            {error && showError && <p className="text-red-500">{error}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full">Sign In</Button>
+          </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
