@@ -329,44 +329,126 @@ export default function DebateForum() {
 
   // Home page UI
   const HomePage = () => (
-    <div className="container mx-auto px-4 py-8 pt-20">
-  <h1 className="text-4xl font-bold mb-6 text-center">Debate Skills Improvement Forum</h1>
-  <p className="text-xl text-center mb-8">
-    Welcome to the premier online platform for high school debaters to refine their skills across various debate formats.
-  </p>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8 pt-10">
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-2">Learn from Experts</h2>
-      <p className="text-gray-600">Gain insights and tips from experienced debaters and coaches.</p>
-    </div>
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-2">Practice Debates</h2>
-      <p className="text-gray-600">Participate in practice debates to hone your skills.</p>
-    </div>
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-2">Community Support</h2>
-      <p className="text-gray-600">Join a community of like-minded individuals who share your passion for debate.</p>
-    </div>
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-2">Resources</h2>
-      <p className="text-gray-600">Access a wealth of resources including articles, videos, and more.</p>
-    </div>
-  </div>
-  <div className="mt-8 text-center">
-    {user ? (
+    <div className="container mx-auto px-4 py-8 ">
+  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-100 opacity-60 -z-10"></div>
+
+{/* Content on top */}
+<div className="overflow-hidden">
+  <div className="mx-auto max-w-7xl px-6 pb-32 pt-36 sm:pt-60 lg:px-8 lg:pt-16">
+    <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
+      {/* Text Content */}
+      <div className="text-center lg:text-left">
+      {user ? (
       <>
-        <p className='pb-10 pt-20'>
+        <p className='pb-5 '>
           Welcome,
           <span className="relative group pl-1">
             <span>{user.displayName || user.email}</span>
-            {user.displayName && (
-              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100">
-                {user.email}
-              </span>
-            )}
           </span>
           !
         </p>
+        </>
+        ) : (<></>)}
+        <h2 className="text-5xl font-extrabold text-black mb-6">Welcome to DebateHub</h2>
+        <p className="text-xl text-black-200 mb-8 max-w-2xl mx-auto">
+          Elevate your debate skills, connect with peers, and explore diverse perspectives
+          in a vibrant community of high school debaters.
+        </p>
+      </div>
+
+      {/* Image Content */}
+      <div className="lg:flex-shrink-0 lg:w-1/2">
+        <img
+          className="w-full object-cover rounded-lg shadow-lg"
+          src="https://www.shutterstock.com/image-vector/debate-before-vote-male-woman-600nw-2184567945.jpg"
+          alt="Debate illustration"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+  <div className="container mx-auto px-4 py-12 pb-0">
+        <section className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M.5 200V.5H200" fill="none" />
+            </svg>
+            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Engage in Discussions</h3>
+            <p className="text-gray-600">
+              Participate in thought-provoking debates on various topics and formats.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+              />
+            </svg>
+            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Improve Your Skills</h3>
+            <p className="text-gray-600">
+              Learn from peers, share strategies, and refine your argumentation techniques.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Build Connections</h3>
+            <p className="text-gray-600">
+              Network with fellow debaters and form lasting friendships in the community.
+            </p>
+          </div>
+        </section>
+
+        {/* Section explaining DebateHub */}
+        <section className="bg-blue-50 rounded-xl p-8 mb-16">
+          <h2 className="text-3xl font-bold text-blue-900 mb-6">What is DebateHub?</h2>
+          <div className="text-gray-700 space-y-4">
+            <p>
+              DebateHub is a dynamic online platform designed specifically for high school debaters
+              who are passionate about honing their skills and engaging in meaningful discussions.
+              Our community-driven forum provides a space where students can connect, learn, and
+              grow without the need for formal coaching or mentoring.
+            </p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Participate in a wide range of debates and discussions</li>
+              <li>Enhance your debating abilities with interactive resources</li>
+              <li>Join a supportive network of like-minded debaters</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+   
+  <div className="mt-8 text-center">
+    {user ? (
+      <>
+        
         <Button onClick={() => navigateTo('forums')} size="lg">
           Explore Forums
         </Button>
@@ -743,7 +825,7 @@ export default function DebateForum() {
       <header className="bg-white shadow">
       <nav className="mx-auto py-4">
   <ul className="flex items-center justify-between w-full px-10">
-    <img src="../favicon.ico" alt="Logo" className="w-14 h-14" />
+    <img src="./favicon.png" alt="Logo" className="w-14 h-14" />
     <div className="flex-1 flex  items-center space-x-4 pl-20">
       <Button variant="ghost" onClick={() => navigateTo('home')}>Home</Button>
       <Button variant="ghost" onClick={() => navigateTo('forums')}>Forums</Button>
