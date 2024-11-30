@@ -332,7 +332,7 @@ export default function DebateForum() {
   // Home page UI
   const HomePage = () => (
     <div className="container mx-auto px-4 py-8 ">
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-100 opacity-60 -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-100 opacity-60 -z-10"></div>
 
       {/* Content on top */}
       <div className="overflow-hidden">
@@ -343,10 +343,10 @@ export default function DebateForum() {
               {user ? (
                 <>
                   <p className='pb-5 '>
-                    Welcome,
+                    Hello,
                     <span className="relative group pl-1">
                       <span>{user.displayName || user.email}</span>
-                      <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
+                      <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
                         {user.email}
                       </span>
                     </span>
@@ -377,14 +377,14 @@ export default function DebateForum() {
           <div className="bg-white rounded-lg shadow-lg p-6 text-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              className="h-12 w-12 text-red-500 mx-auto mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
               <path d="M.5 200V.5H200" fill="none" />
             </svg>
-            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Engage in Discussions</h3>
+            <h3 className="text-2xl font-semibold text-red-900 mb-6">Engage in Discussions</h3>
             <p className="text-gray-600">
               Participate in thought-provoking debates on various topics and formats.
             </p>
@@ -392,7 +392,7 @@ export default function DebateForum() {
           <div className="bg-white rounded-lg shadow-lg p-6 text-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              className="h-12 w-12 text-red-500 mx-auto mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -404,7 +404,7 @@ export default function DebateForum() {
                 d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
               />
             </svg>
-            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Improve Your Skills</h3>
+            <h3 className="text-2xl font-semibold text-red-900 mb-6">Improve Your Skills</h3>
             <p className="text-gray-600">
               Learn from peers, share strategies, and refine your argumentation techniques.
             </p>
@@ -412,7 +412,7 @@ export default function DebateForum() {
           <div className="bg-white rounded-lg shadow-lg p-6 text-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-blue-500 mx-auto mb-4"
+              className="h-12 w-12 text-red-500 mx-auto mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -424,7 +424,7 @@ export default function DebateForum() {
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            <h3 className="text-2xl font-semibold text-blue-900 mb-6">Build Connections</h3>
+            <h3 className="text-2xl font-semibold text-red-900 mb-6">Build Connections</h3>
             <p className="text-gray-600">
               Network with fellow debaters and form lasting friendships in the community.
             </p>
@@ -432,8 +432,8 @@ export default function DebateForum() {
         </section>
 
         {/* Section explaining DebateHub */}
-        <section className="bg-blue-50 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-blue-900 mb-6">What is DebateHub?</h2>
+        <section className="bg-red-50 rounded-xl p-8 mb-16 shadow-lg">
+          <h2 className="text-3xl font-bold text-red-900 mb-6">What is DebateHub?</h2>
           <div className="text-gray-700 space-y-4">
             <p>
               DebateHub is a dynamic online platform designed specifically for high school debaters
@@ -627,7 +627,7 @@ export default function DebateForum() {
                           <span className="text-sm text-gray-500">Posted by </span>
                           <span className="relative group font-medium text-gray-700">
                             {userName}
-                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
+                            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
                               {post.userEmail}
                             </span>
                           </span>
@@ -672,7 +672,7 @@ export default function DebateForum() {
           <span className="text-sm text-gray-500">Posted by </span>
           <span className="relative group font-medium text-gray-700">
             {userName}
-            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
+            <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
               {selectedPost.userEmail}
             </span>
           </span>
@@ -747,7 +747,7 @@ export default function DebateForum() {
           <p>
             <span className="relative group font-medium text-gray-700">
               {userName}
-              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none">
+              <span className="absolute left-0 bottom-full mb-1 w-max p-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500">
                 {comment.userEmail}
               </span>
             </span>
