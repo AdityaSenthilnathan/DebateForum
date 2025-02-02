@@ -48,6 +48,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div><p>After making account click on confirmation link in email</p></div>
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input
