@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs, deleteDoc } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
-import { signOut, onAuthStateChanged, User } from 'firebase/auth'
+import { signOut, onAuthStateChanged, User, updatePassword, sendPasswordResetEmail } from 'firebase/auth'
 
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
@@ -913,6 +913,8 @@ export default function DebateForum() {
     const [newDisplayName, setNewDisplayName] = useState<string>('');
     const [updateLoading, setUpdateLoading] = useState<boolean>(false);
     const [updateError, setUpdateError] = useState<string>('');
+    const [passwordError, setPasswordError] = useState<string>('');
+    const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
 
     const handleDisplayNameChange = async () => {
       if (!newDisplayName) {
@@ -936,6 +938,24 @@ export default function DebateForum() {
       setUpdateLoading(false);
     };
 
+    const handleSendPasswordResetEmail = async () => {
+      if (!user?.email) {
+        setPasswordError('No email found for the user.');
+        return;
+      }
+  
+      setPasswordLoading(true);
+      try {
+        await sendPasswordResetEmail(auth, user.email);
+        setPasswordError(''); // Clear error
+        alert('Password reset email sent. Please check your inbox.');
+      } catch (error) {
+        console.error('Error sending password reset email:', error);
+        setPasswordError('Failed to send password reset email. Please try again later.');
+      }
+      setPasswordLoading(false);
+    };
+
     if (!user) {
       return <div>Please log in to view your account details.</div>;
     }
@@ -956,6 +976,12 @@ export default function DebateForum() {
             <Button onClick={handleDisplayNameChange} className="mt-2" disabled={updateLoading}>
               {updateLoading ? 'Updating...' : 'Update Display Name'}
             </Button>
+          </div>
+          <div className="mt-4">
+            <Button onClick={handleSendPasswordResetEmail} className="mt-2" disabled={passwordLoading}>
+              {passwordLoading ? 'Sending...' : 'Send Password Reset Email'}
+            </Button>
+            {passwordError && <p className="text-red-500 mt-2">{passwordError}</p>}
           </div>
         </div>
 
