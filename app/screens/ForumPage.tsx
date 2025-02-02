@@ -17,7 +17,7 @@ import { ThumbsUp } from "lucide-react"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 interface Post {
-  createdAt: any;
+  createdAt: { seconds: number }; // Firestore timestamp format
   id: string;
   title: string;
   content: string;

@@ -1,7 +1,7 @@
 // components/DropdownMenu.tsx
 import React, { useState, ReactNode } from 'react';
 
-export const DropdownMenu = ({ children }: { children: React.ReactElement<any> | React.ReactElement<any>[] }) => {
+export const DropdownMenu = ({ children }: { children: React.ReactElement | React.ReactElement[] }) => {
   const [show, setShow] = useState(false);
 
   const handleToggle = () => {
@@ -10,12 +10,12 @@ export const DropdownMenu = ({ children }: { children: React.ReactElement<any> |
 
   return (
     <div className="relative inline-block text-left">
-      {React.Children.map(children, (child: React.ReactElement<any>) => {
+      {React.Children.map(children, (child: React.ReactElement) => {
         if (React.isValidElement(child) && child.type === DropdownMenuTrigger) {
-          return React.cloneElement(child as React.ReactElement<any>, { onClick: handleToggle });
+          return React.cloneElement(child as React.ReactElement<DropdownMenuTriggerProps>, { onClick: handleToggle });
         }
         if (React.isValidElement(child) && child.type === DropdownMenuContent) {
-          return React.cloneElement(child as React.ReactElement<any>, { show });
+          return React.cloneElement(child as React.ReactElement<DropdownMenuContentProps>, { show });
         }
         return child;
       })}
