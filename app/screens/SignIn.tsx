@@ -43,8 +43,8 @@ export default function SignIn() {
       console.log('Successfully signed in with email/password');
       // You can redirect the user after successful login here
     } catch (error) {
-      setError('Failed to sign in with email/password. Please check your credentials.');
-      console.error('Error signing in with email/password:', error);
+      setError('Failed to sign in with email/password Please check your credentials or create an account');
+      //console.error('Error signing in with email/password:', error);
     }
   };
 
@@ -61,7 +61,7 @@ export default function SignIn() {
       setIsResetModalOpen(false); // Close the reset modal after sending the email
     } catch (error) {
       setError('Failed to send password reset email. Please try again later.');
-      console.error('Error sending password reset email:', error);
+      //console.error('Error sending password reset email:', error);
     }
   };
 
