@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs, deleteDoc } from 'firebase/firestore'
 import { db, auth } from '../firebaseConfig'
-import { signOut, onAuthStateChanged, User, updatePassword, sendPasswordResetEmail } from 'firebase/auth'
+import { signOut, onAuthStateChanged, User, sendPasswordResetEmail } from 'firebase/auth'
 
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
@@ -17,7 +17,7 @@ import { ThumbsUp } from "lucide-react"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 interface Post {
-  createdAt: any
+  createdAt: any;
   id: string;
   title: string;
   content: string;
