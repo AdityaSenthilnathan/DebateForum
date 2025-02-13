@@ -3,48 +3,66 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import SignUpModal from './SignUpModal'; // Import the SignUpModal component
+
+const ErrorMessage = ({ message }: { message: string }) => (
+  <p className="text-red-500">{message}</p>
+);
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState(''); // Change error initial state from 'l' to empty string
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false); // Manage modal visibility
-  const [showError, setShowError] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false); // Manage reset modal visibility
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); // Add this new state
 
   useEffect(() => {
-    if (error) {
-      setShowError(true);
-      const timer = setTimeout(() => {
-        setShowError(false);
-      }, 5000); // Hide error after 5 seconds
-      return () => clearTimeout(timer);
+    let timer: NodeJS.Timeout;
+    // Only set timer for non-verification error messages
+    if (error && !error.includes('verify your email')) {
+      timer = setTimeout(() => {
+        setError('');
+      }, 5000);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [error]);
 
   // Handle Sign In with Email/Password
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault(); // Prevent form from refreshing the page
+    setError(''); // Reset error state
+    setSuccessMessage(''); // Reset success message state
+    setResetEmailSent(false); // Reset the reset email sent state
+    setVerificationEmailSent(false); // Reset the verification email sent state
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (!user.emailVerified) {
-        await signOut(auth);
+        
         setError('Please verify your email before signing in. Check your email for a confirmation link.');
+        
+        await signOut(auth);
+      
         return;
       }
 
-      console.log('Successfully signed in with email/password');
-      // You can redirect the user after successful login here
-    } catch (error) {
-      setError('Failed to sign in with email/password Please check your credentials or create an account');
-      //console.error('Error signing in with email/password:', error);
+      setSuccessMessage('Successfully signed in!');
+      // Handle successful sign in here (e.g., redirect)
+      
+    } catch (error: any) {
+      // Improve error message handling
+      const errorMessage = error.message || 'Failed to sign in. Please check your credentials.';
+      setError(errorMessage);
     }
   };
 
@@ -57,7 +75,7 @@ export default function SignIn() {
     try {
       await sendPasswordResetEmail(auth, email);
       setResetEmailSent(true);
-      setError('');
+      setError('c');
       setIsResetModalOpen(false); // Close the reset modal after sending the email
     } catch (error) {
       setError('Failed to send password reset email. Please try again later.');
@@ -65,24 +83,28 @@ export default function SignIn() {
     }
   };
 
-  // Open Sign Up Modal
-  const openSignUpModal = () => {
-    setIsSignUpModalOpen(true);  // Set the modal state to open
+  // Handle Resend Verification Email
+  const handleResendVerificationEmail = async () => {
+    if (!email) {
+      setError('Please enter your email to resend the verification link.');
+      return;
+    }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await sendEmailVerification(user);
+      await signOut(auth);
+      setVerificationEmailSent(true);
+      setError('d');
+    } catch (error) {
+      setError('Failed to resend verification email. Please try again later.');
+      console.error('Error resending verification email:', error);
+    }
   };
 
-  // Close Sign Up Modal
-  const closeSignUpModal = () => {
-    setIsSignUpModalOpen(false); // Set the modal state to closed
-  };
-
-  // Open Reset Modal
-  const openResetModal = () => {
-    setIsResetModalOpen(true); // Set the reset modal state to open
-  };
-
-  // Close Reset Modal
-  const closeResetModal = () => {
-    setIsResetModalOpen(false); // Set the reset modal state to closed
+  // Toggle Modal
+  const toggleModal = (setModalState: React.Dispatch<React.SetStateAction<boolean>>, state: boolean) => {
+    setModalState(state);
   };
 
   return (
@@ -94,8 +116,10 @@ export default function SignIn() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
-            {error && showError && <p className="text-red-500">{error}</p>}
+            {error && <ErrorMessage message={error} />}
+            {successMessage && <p className="text-green-500">{successMessage}</p>}
             {resetEmailSent && <p className="text-green-500">Password reset email sent. Please check your inbox.</p>}
+            {verificationEmailSent && <p className="text-green-500">Verification email sent. Please check your inbox.</p>}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -105,6 +129,7 @@ export default function SignIn() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email" // Add autocomplete attribute
               />
             </div>
             <div className="space-y-2">
@@ -115,24 +140,24 @@ export default function SignIn() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password" // Add autocomplete attribute
               />
             </div>
             <Button type="submit" className="w-full">Sign In</Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-between items-center p-4 bg-gray-50 rounded-b-md">
-  <p className="text-md text-gray-600">
-   
-    <button onClick={openSignUpModal} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
-      Sign up
-    </button>
-  </p>
-  <p className="text-md text-gray-600">
-    <button onClick={openResetModal} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
-      Forgot Password?
-    </button>
-  </p>
-</CardFooter>
+          <p className="text-md text-gray-600">
+            <button onClick={() => toggleModal(setIsSignUpModalOpen, true)} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
+              Sign up
+            </button>
+          </p>
+          <p className="text-md text-gray-600">
+            <button onClick={() => toggleModal(setIsResetModalOpen, true)} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
+              Forgot Password?
+            </button>
+          </p>
+        </CardFooter>
       </Card>
 
       {/* Conditionally render the SignUpModal */}
@@ -140,7 +165,7 @@ export default function SignIn() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Sign Up</h2>
-            <SignUpModal onClose={closeSignUpModal} />
+            <SignUpModal onClose={() => toggleModal(setIsSignUpModalOpen, false)} />
           </div>
         </div>
       )}
@@ -159,14 +184,24 @@ export default function SignIn() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email" // Add autocomplete attribute
               />
             </div>
             <div className="flex justify-end mt-4">
               <Button onClick={handlePasswordReset} className="mr-2">Submit</Button>
-              <Button onClick={closeResetModal} variant="outline">Cancel</Button>
+              <Button onClick={() => toggleModal(setIsResetModalOpen, false)} variant="outline">Cancel</Button>
             </div>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
+            {error && <ErrorMessage message={error} />}
           </div>
+        </div>
+      )}
+
+      {/* Conditionally render the Resend Verification Email option */}
+      {error.includes('verify your email') && (
+        <div className="mt-4">
+          <Button onClick={handleResendVerificationEmail} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
+            Resend Verification Email
+          </Button>
         </div>
       )}
     </div>
