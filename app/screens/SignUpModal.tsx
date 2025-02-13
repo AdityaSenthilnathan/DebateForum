@@ -32,7 +32,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, { displayName: name, email: user.email });
 
-      console.log("User registered successfully. Please verify your email.");
+      setError("User registered successfully. Please verify your email.");
       onClose(); // Close the modal after successful sign-up
     } catch (error) {
       console.error("Error signing up:", error);
@@ -58,6 +58,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          autoComplete="name" // Add autocomplete attribute
         />
       </div>
       <div className="space-y-2">
@@ -69,6 +70,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email" // Add autocomplete attribute
         />
       </div>
       <div className="space-y-2">
@@ -80,6 +82,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="new-password" // Add autocomplete attribute
         />
       </div>
       <div className="flex justify-end mt-4">
