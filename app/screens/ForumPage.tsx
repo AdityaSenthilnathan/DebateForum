@@ -69,12 +69,7 @@ export default function DebateForum() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        if (!user.emailVerified) {
-          await signOut(auth);
-          setError('Please verify your email before accessing the forum.');
-          setUser(null);
-          return;
-        }
+
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
