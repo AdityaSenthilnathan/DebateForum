@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic'; // Import dynamic from next/dynamic
+import { useRouter } from 'next/router'; // Import useRouter from next/router
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import SignUpModal from './SignUpModal'; // Import the SignUpModal component
+import { auth } from '../firebaseConfig'; // Correct import path for firebaseConfig
+const SignUpModal = dynamic(() => import('./SignUpModal'), { ssr: false }); // Dynamically import SignUpModal
 
 const ErrorMessage = ({ message }: { message: string }) => (
   <p className="text-red-500">{message}</p>
@@ -14,13 +16,13 @@ const ErrorMessage = ({ message }: { message: string }) => (
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [error, setError] = useState(''); // Change error initial state from 'l' to empty string
+  const [error, setError] = useState('');
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false); // Manage modal visibility
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false); // Manage reset modal visibility
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(''); // Add this new state
+  const [successMessage, setSuccessMessage] = useState(''); // Add successMessage state
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -39,7 +41,6 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent form from refreshing the page
     setError(''); // Reset error state
-    setSuccessMessage(''); // Reset success message state
     setResetEmailSent(false); // Reset the reset email sent state
     setVerificationEmailSent(false); // Reset the verification email sent state
 
@@ -48,21 +49,20 @@ export default function SignIn() {
       const user = userCredential.user;
 
       if (!user.emailVerified) {
-        
-        setError('Please verify your email before signing in. Check your email for a confirmation link.');
-        
-        await signOut(auth);
-      
+        router.push('/verify-email'); // Redirect to VerifyEmail page
         return;
       }
 
       setSuccessMessage('Successfully signed in!');
       // Handle successful sign in here (e.g., redirect)
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Improve error message handling
-      const errorMessage = error.message || 'Failed to sign in. Please check your credentials.';
-      setError(errorMessage);
+      if (error instanceof Error) {
+        setError(error.message || 'Failed to sign in. Please check your credentials.');
+      } else {
+        setError('Failed to sign in. Please check your credentials.');
+      }
     }
   };
 
@@ -75,11 +75,10 @@ export default function SignIn() {
     try {
       await sendPasswordResetEmail(auth, email);
       setResetEmailSent(true);
-      setError('c');
+      setError('');
       setIsResetModalOpen(false); // Close the reset modal after sending the email
-    } catch (error) {
+    } catch (error: unknown) {
       setError('Failed to send password reset email. Please try again later.');
-      //console.error('Error sending password reset email:', error);
     }
   };
 
@@ -95,8 +94,8 @@ export default function SignIn() {
       await sendEmailVerification(user);
       await signOut(auth);
       setVerificationEmailSent(true);
-      setError('d');
-    } catch (error) {
+      setError('');
+    } catch (error: unknown) {
       setError('Failed to resend verification email. Please try again later.');
       console.error('Error resending verification email:', error);
     }
@@ -117,7 +116,7 @@ export default function SignIn() {
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
             {error && <ErrorMessage message={error} />}
-            {successMessage && <p className="text-green-500">{successMessage}</p>}
+            {successMessage && <p className="text-green-500">{successMessage}</p>} {/* Display success message */}
             {resetEmailSent && <p className="text-green-500">Password reset email sent. Please check your inbox.</p>}
             {verificationEmailSent && <p className="text-green-500">Verification email sent. Please check your inbox.</p>}
             <div className="space-y-2">
