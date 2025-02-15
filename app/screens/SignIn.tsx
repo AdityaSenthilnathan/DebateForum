@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import SignUpModal from './SignUpModal'; // Import the SignUpModal component
 
@@ -30,6 +30,22 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        //await signOut(auth);
+        setError('Please verify your email before signing in. Check your email for a confirmation link.');
+        return;
+      }
+
+      console.log('Successfully signed in with email/password');
+      // You can redirect the user after successful login here
+    } catch (error) {
+      setError('Failed to sign in with email/password. Please check your credentials.');
+      console.error('Error signing in with email/password:', error);
+    }
   };
 
   // Handle Password Reset
@@ -43,8 +59,9 @@ export default function SignIn() {
       setResetEmailSent(true);
       setError('');
       setIsResetModalOpen(false); // Close the reset modal after sending the email
-    } catch {
+    } catch (error) {
       setError('Failed to send password reset email. Please try again later.');
+      console.error('Error sending password reset email:', error);
     }
   };
 
