@@ -12,8 +12,9 @@ const NoAuthenticationPage: React.FC<{ email: string }> = ({ email }) => {
         await sendEmailVerification(auth.currentUser);
         setMessage('Verification email resent. Please check your inbox.');
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to resend verification email. Please try again later.');
+      
     }
   };
 
