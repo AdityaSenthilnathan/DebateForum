@@ -31,10 +31,9 @@ export default function SignIn() {
     e.preventDefault();
     setError('');
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('Successfully signed in with email/password');
       // You can redirect the user after successful login here
-    } catch (error) {
+    } catch{
       setError('Failed to sign in with email/password. Please check your credentials or create an account.');
     }
   };
@@ -50,7 +49,7 @@ export default function SignIn() {
       setResetEmailSent(true);
       setError('');
       setIsResetModalOpen(false); // Close the reset modal after sending the email
-    } catch (error) {
+    } catch {
       setError('Failed to send password reset email. Please try again later.');
     }
   };
