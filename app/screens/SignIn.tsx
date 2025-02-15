@@ -30,24 +30,6 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    try {
-<<<<<<< Updated upstream
-      console.log('Successfully signed in with email/password');
-      // You can redirect the user after successful login here
-    } catch{
-      setError('Failed to sign in with email/password. Please check your credentials or create an account.');
-=======
-      
-
-  
-
-      console.log('Successfully signed in with email/password');
-      // You can redirect the user after successful login here
-    } catch {
-      setError('Failed to sign in with email/password Please check your credentials or create an account');
-      //console.error('Error signing in with email/password:', error);
->>>>>>> Stashed changes
-    }
   };
 
   // Handle Password Reset
