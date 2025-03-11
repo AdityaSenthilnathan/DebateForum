@@ -145,7 +145,7 @@ export default function DebateForum() {
       });
       titleRef.current.value = ''; // Reset title after successful submission
       contentRef.current.value = ''; // Reset content after successful submission
-      setError('e'); // Clear error
+      setError(''); // Clear error
     } catch (error) {
       console.error('Error adding post:', error);
       setError('Failed to add the post. Please try again later.');
@@ -267,7 +267,7 @@ export default function DebateForum() {
           commentRefs.current[postId]!.value = ''; // Reset comment after successful submission
         }
       }
-      setError('f'); // Clear error
+      setError(''); // Clear error
     } catch (error) {
       console.error('Error adding comment:', error);
       setError('Failed to add the comment. Please try again later.');
@@ -314,7 +314,7 @@ export default function DebateForum() {
   // Handle navigation between pages
   const navigateTo = (page: string, post?: Post) => {
     setSelectedPost(post || null);
-    setError('g'); // Clear error when navigating to a new page
+    setError(''); // Clear error when navigating to a new page
     setCurrentPage(page);
   }
 
