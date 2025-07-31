@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, deleteDoc, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { NavigationBar } from '../../screens/ForumPage';
 import { useAuth } from '../../authContext';
@@ -28,6 +28,7 @@ export default function ForumPostsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { currentUser, signOut } = useAuth();
+  const [displayNames, setDisplayNames] = useState<{ [email: string]: string }>({});
 
   useEffect(() => {
     if (forumId) {
@@ -47,6 +48,30 @@ export default function ForumPostsPage() {
       return unsubscribe;
     }
   }, [forumId]);
+
+  useEffect(() => {
+    // Fetch display names for all unique emails in posts
+    const fetchDisplayNames = async () => {
+      const emails = Array.from(new Set(posts.map((post) => post.userEmail)));
+      const newDisplayNames: { [email: string]: string } = {};
+      for (const email of emails) {
+        if (displayNames[email]) {
+          newDisplayNames[email] = displayNames[email];
+          continue;
+        }
+        const userQuery = query(collection(db, 'users'), where('email', '==', email));
+        const querySnapshot = await getDocs(userQuery);
+        if (!querySnapshot.empty) {
+          newDisplayNames[email] = querySnapshot.docs[0].data().displayName;
+        } else {
+          newDisplayNames[email] = email;
+        }
+      }
+      setDisplayNames((prev) => ({ ...prev, ...newDisplayNames }));
+    };
+    if (posts.length > 0) fetchDisplayNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts]);
 
   const handleSignOut = async () => {
     try {
@@ -72,11 +97,15 @@ export default function ForumPostsPage() {
                 </CardHeader>
                 <CardContent>
                   <p>{post.content}</p>
+                  
                 </CardContent>
-                <CardFooter>
-                  <Button onClick={() => router.push(`/forum/${encodeURIComponent(forumId)}/posts/${post.id}`)}>
-                    View Post
-                  </Button>
+                <CardFooter style={{ padding: '1rem'}}>
+                    <div className="w-full flex items-center justify-between">
+                        <p className="text-sm text-gray-500 pl-2">Posted by: {displayNames[post.userEmail] || post.userEmail}</p>
+                        <Button onClick={() => router.push(`/forum/${encodeURIComponent(forumId)}/posts/${post.id}`)}>
+                            View Post
+                        </Button>
+                    </div>
                 </CardFooter>
               </Card>
             ))
