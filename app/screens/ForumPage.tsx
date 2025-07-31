@@ -39,6 +39,8 @@ interface Comment {
 }
 
 export function NavigationBar({ user, handleSignOut }: { user: any, handleSignOut: () => void }) {
+  // Helper to get display name
+  const displayName = user?.displayName || '';
   return (
     <header className="bg-white shadow">
       <nav className="mx-auto py-4">
@@ -56,7 +58,7 @@ export function NavigationBar({ user, handleSignOut }: { user: any, handleSignOu
             </Link>
           </div>
           <span className="relative group pr-5">
-            <span>{user?.displayName || user?.email || ''}</span>
+            <span>{displayName}</span>
           </span>
           <Button onClick={handleSignOut} size="lg">
             Log Out
@@ -310,17 +312,21 @@ export default function DebateForum() {
     return email;
   };
 
+  // Helper hook to get display name from email
   const useUserName = (email: string) => {
     const [userName, setUserName] = useState<string>(email);
-
     useEffect(() => {
       const fetchUserName = async () => {
-        const name = await getUserName(email);
-        setUserName(name);
+        const userQuery = query(collection(db, 'users'), where('email', '==', email));
+        const querySnapshot = await getDocs(userQuery);
+        if (!querySnapshot.empty) {
+          setUserName(querySnapshot.docs[0].data().displayName);
+        } else {
+          setUserName(email);
+        }
       };
       fetchUserName();
     }, [email]);
-
     return userName;
   };
 
