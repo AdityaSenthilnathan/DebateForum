@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth } from "../firebaseConfig";
-import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
       const user = userCredential.user;
 
       await updateProfile(user, { displayName: name });
-      await sendEmailVerification(user); // Send email verification
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, { displayName: name, email: user.email });
 
-      setError("User registered successfully. Please verify your email.");
+      setError("User registered successfully!");
       onClose(); // Close the modal after successful sign-up
     } catch (error) {
       console.error("Error signing up:", error);
@@ -48,7 +47,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div><p>After making account click on confirmation link in email</p></div>
+
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input

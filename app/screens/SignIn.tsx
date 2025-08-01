@@ -32,14 +32,6 @@ export default function SignIn() {
     setError('');
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      if (!user.emailVerified) {
-        //await signOut(auth);
-        setError('Please verify your email before signing in. Check your email for a confirmation link.');
-        return;
-      }
-
       console.log('Successfully signed in with email/password');
       // You can redirect the user after successful login here
     } catch (error) {

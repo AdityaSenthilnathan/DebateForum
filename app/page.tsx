@@ -7,7 +7,7 @@ import Layout from './layout'; // Layout component
 import SignIn from './screens/SignIn'; // SignIn component
 import ForumPage from './screens/ForumPage'; // ForumPage component
 import { useAuth } from './authContext'; // useAuth hook to access auth state
-import NoAuthenticationPage from './NoAuthenticationPage'; // NewScreen component
+
 const Page: React.FC = () => {
   return (
     <AuthProvider> {/* Wrap your entire app here */}
@@ -27,8 +27,6 @@ const MainContent: React.FC = () => {
   return (
     <>{!currentUser ? (
       <SignIn />
-    ) : !currentUser.emailVerified && currentUser.email ? (
-      <NoAuthenticationPage email={currentUser.email} />
     ) : (
       <ForumPage />
     )}</> // Show SignIn if no user is authenticated
