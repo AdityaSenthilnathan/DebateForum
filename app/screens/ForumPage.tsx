@@ -3,22 +3,22 @@
 import '../globals.css'
 import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Input } from "@/components/ui/input"
+// import { Textarea } from "@/components/ui/textarea"
 import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, where, getDocs, deleteDoc } from 'firebase/firestore'
-import { db, auth } from '../firebaseConfig'
-import { signOut } from 'firebase/auth'
+import { db } from '../firebaseConfig'
+// import { signOut } from 'firebase/auth'
 import Link from 'next/link';
-///import { useRouter } from 'next/navigation';
+//import { useRouter } from 'next/navigation';
 import { useAuth } from '../authContext';
 
 import './ForumPage.css'; // Import the CSS file for curved lines
 //import Link from 'next/link';
-import { MessageCircle } from "lucide-react"
-import { ThumbsUp } from "lucide-react"
-import { MoreVertical } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
+// import { MessageCircle } from "lucide-react"
+// import { ThumbsUp } from "lucide-react"
+// import { MoreVertical } from "lucide-react"
+// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 import { useRouter } from 'next/navigation'
 interface Post {
   createdAt: { seconds: number }; // Firestore timestamp format
