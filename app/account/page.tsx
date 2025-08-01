@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../authContext';
 import { db } from '../firebaseConfig';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NavigationBar } from '../screens/ForumPage';
