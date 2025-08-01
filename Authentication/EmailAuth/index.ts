@@ -1,5 +1,5 @@
 import { auth } from "@/app/firebaseConfig";
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 export const registerUser = async (
   name: string,
@@ -22,9 +22,7 @@ export const registerUser = async (
     const user = userCredential.user;
     console.log("Results:" + user);
 
-    // Send Email Verification
-    await sendEmailVerification(user);
-    alert('A verification email has been sent to your address!');
+    // User created successfully
 
     // Sign out the user
     await signOut(auth);
