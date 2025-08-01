@@ -19,7 +19,7 @@ import { MessageCircle } from "lucide-react"
 import { ThumbsUp } from "lucide-react"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
-import router from 'next/router'
+import { useRouter } from 'next/navigation'
 interface Post {
   createdAt: { seconds: number }; // Firestore timestamp format
   id: string;
@@ -70,6 +70,7 @@ export function NavigationBar({ user, handleSignOut }: { user: any, handleSignOu
 }
 
 export default function DebateForum() {
+  const router = useRouter()
   const [currentForum, setCurrentForum] = useState<string>('') // Forum selected
   const [posts, setPosts] = useState<Post[]>([]) // Typed posts state
   const [loading, setLoading] = useState<boolean>(false)
