@@ -10,7 +10,7 @@ import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arra
 import { db, auth } from '../firebaseConfig'
 import { signOut } from 'firebase/auth'
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+///import { useRouter } from 'next/navigation';
 import { useAuth } from '../authContext';
 
 import './ForumPage.css'; // Import the CSS file for curved lines

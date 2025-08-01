@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'next/navigation';
 import { db } from '../firebaseConfig';
 import { getStorage } from 'firebase/storage';
 import Image from 'next/image';
