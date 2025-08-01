@@ -29,6 +29,42 @@ export default function ForumPostsPage() {
   const [error, setError] = useState('');
   const { currentUser, signOut } = useAuth();
   const [displayNames, setDisplayNames] = useState<{ [email: string]: string }>({});
+  const [newPostTitle, setNewPostTitle] = useState('');
+  const [newPostContent, setNewPostContent] = useState('');
+  const [showNewPostForm, setShowNewPostForm] = useState(false);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostTitle.trim() || !newPostContent.trim()) {
+      setError('Title and content are required');
+      return;
+    }
+
+    if (!currentUser) {
+      setError('You must be logged in to create a post');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'forums', forumId, 'posts'), {
+        title: newPostTitle,
+        content: newPostContent,
+        userEmail: currentUser.email,
+        createdAt: new Date(),
+        likes: [],
+        comments: []
+      });
+      setNewPostTitle('');
+      setNewPostContent('');
+      setShowNewPostForm(false);
+      setError('');
+    } catch (err) {
+      console.error('Error creating post:', err);
+      setError('Failed to create post');
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (forumId) {
@@ -85,7 +121,68 @@ export default function ForumPostsPage() {
     <div className="min-h-screen bg-gray-100">
       <NavigationBar user={currentUser} handleSignOut={handleSignOut} />
       <div className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold mb-6">{forumId} Forum</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold">{forumId} Forum</h2>
+          <Button 
+            onClick={() => setShowNewPostForm(!showNewPostForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {showNewPostForm ? 'Cancel' : 'Create New Post'}
+          </Button>
+        </div>
+
+        {showNewPostForm && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Create New Post</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreatePost}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="postTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                      Title
+                    </label>
+                    <Input
+                      id="postTitle"
+                      value={newPostTitle}
+                      onChange={(e) => setNewPostTitle(e.target.value)}
+                      placeholder="Enter post title"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="postContent" className="block text-sm font-medium text-gray-700 mb-1">
+                      Content
+                    </label>
+                    <Textarea
+                      id="postContent"
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      placeholder="What would you like to discuss?"
+                      rows={4}
+                      className="w-full"
+                    />
+                  </div>
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowNewPostForm(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? 'Posting...' : 'Post'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
         <div className="grid grid-cols-1 gap-6">
           {posts.length === 0 ? (
             <p>No posts yet. Be the first to post!</p>
