@@ -69,11 +69,12 @@ export default function SignIn() {
       setTimeout(() => {
         setResetEmailSent(false);
       }, 5000);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string };
       console.error('Error sending password reset email:', error);
       
       // More specific error messages
-      switch (error.code) {
+      switch (firebaseError.code) {
         case 'auth/user-not-found':
           setError('No account found with this email address.');
           break;
@@ -194,7 +195,7 @@ export default function SignIn() {
             </div>
             
             <div className="space-y-4">
-              <p className="text-gray-600">Enter your email address and we'll send you a link to reset your password.</p>
+              <p className="text-gray-600">Enter your email address and we&apos;ll send you a link to reset your password.</p>
               
               <div className="space-y-2">
                 <Label htmlFor="reset-email">Email</Label>
