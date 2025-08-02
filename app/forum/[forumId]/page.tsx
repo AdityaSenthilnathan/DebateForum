@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { collection, addDoc, query, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, getDoc, deleteDoc, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, onSnapshot, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { NavigationBar } from '../../screens/ForumPage';
 import { useAuth } from '../../authContext';
@@ -17,7 +17,12 @@ interface Post {
   content: string;
   userEmail: string;
   likes: string[];
-  comments: any[];
+  comments: Array<{
+    id: string;
+    content: string;
+    userEmail: string;
+    createdAt: { seconds: number };
+  }>;
 }
 
 export default function ForumPostsPage() {
@@ -78,7 +83,7 @@ export default function ForumPostsPage() {
           comments: doc.data().comments || [],
         })) as Post[];
         setPosts(fetchedPosts);
-      }, (error) => {
+      }, () => {
         setError('Failed to fetch posts.');
       });
       return unsubscribe;
@@ -112,7 +117,7 @@ export default function ForumPostsPage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch (error) {
+    } catch {
       setError('Failed to sign out.');
     }
   };
