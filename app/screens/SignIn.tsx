@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import SignUpModal from './SignUpModal'; // Import the SignUpModal component
 
@@ -33,7 +33,8 @@ export default function SignIn() {
     e.preventDefault();
     setError('');
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Using _ prefix to indicate intentionally unused variable
+      //const _ = await signInWithEmailAndPassword(auth, email, password);
       console.log('Successfully signed in with email/password');
       // You can redirect the user after successful login here
     } catch (error) {

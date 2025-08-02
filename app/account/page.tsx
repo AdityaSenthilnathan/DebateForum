@@ -30,7 +30,7 @@ export default function AccountPage() {
       setDisplayName(newDisplayName);
       setNewDisplayName('');
       setError('');
-    } catch (e) {
+    } catch {
       setError('Failed to update display name.');
     }
     setLoading(false);
@@ -39,7 +39,7 @@ export default function AccountPage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch (error) {
+    } catch {
       setError('Failed to sign out.');
     }
   };

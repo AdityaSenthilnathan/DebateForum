@@ -22,7 +22,7 @@ export default function ForumListPage() {
   const [forumPostCounts, setForumPostCounts] = useState<{ [key: string]: number }>(
     {}
   );
-  const [user, setUser] = useState(null); // Replace with actual user logic if needed
+  const [user] = useState(null); // User state (currently unused)
 
   useEffect(() => {
     const fetchForumPostCounts = async () => {
