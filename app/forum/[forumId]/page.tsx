@@ -17,7 +17,12 @@ interface Post {
   content: string;
   userEmail: string;
   likes: string[];
-  comments: any[];
+  comments: Array<{
+    id: string;
+    userEmail: string;
+    content: string;
+    createdAt: { seconds: number };
+  }>;
 }
 
 export default function ForumPostsPage() {
@@ -28,7 +33,7 @@ export default function ForumPostsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { currentUser, signOut } = useAuth();
-  const [displayNames, setDisplayNames] = useState<{ [email: string]: string }>({});
+  const [displayNames, setDisplayNames] = useState<Record<string, string>>({});
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(false);
