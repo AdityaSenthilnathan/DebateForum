@@ -41,14 +41,17 @@ async function getForumData(forumId: string) {
   return postsSnapshot;
 }
 
+interface PageProps {
+  params: { forumId: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
 export default async function ForumPostsPage({
   params,
-}: {
-  params: { forumId: string };
-}) {
-  // First await the params object, then destructure
-  const awaitedParams = await params;
-  const { forumId } = awaitedParams;
+  searchParams,
+}: PageProps) {
+  // Access params directly as they're already resolved by Next.js
+  const { forumId } = params;
   let initialPosts: Post[] = [];
   
   try {
