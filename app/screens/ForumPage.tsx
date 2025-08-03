@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '../authContext';
 import { useRouter } from 'next/navigation';
 import './ForumPage.css';
+import Image from 'next/image';
 
 interface Post {
   createdAt: { seconds: number }; // Firestore timestamp format
@@ -36,12 +37,12 @@ interface User {
 
 export function NavigationBar({ user, handleSignOut }: { user: User | null, handleSignOut: () => void }) {
   // Helper to get display name
-  const displayName = user?.displayName || '';
+  const displayName = user?.displayName || user?.email || 'Guest';
   return (
     <header className="bg-white shadow">
       <nav className="mx-auto py-4">
         <ul className="flex items-center justify-between w-full px-10">
-          <img src="/favicon.png" alt="Logo" className="w-14 h-14 rounded-md" />
+          <Image src="/favicon.png" alt="Logo" className="w-14 h-14 rounded-md" width={56} height={56} />
           <div className="flex-1 flex items-center space-x-4 pl-20">
             <Link href="/" legacyBehavior>
               <a><Button variant="ghost">Home</Button></a>
@@ -487,7 +488,7 @@ export default function DebateForum() {
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Elevate your debate skills, connect with peers, and explore diverse perspectives in a vibrant community of high school debaters.
           </p>
-          <img src="/logo.png" alt="DebateHub Logo" className="mx-auto rounded-lg shadow-lg mb-8" style={{ height: '40vh', width: 'auto' }} />
+          <Image src="/logo.png" alt="DebateHub Logo" className="mx-auto rounded-lg shadow-lg mb-8" width={600} height={400} />
           <div className="container mx-auto px-4 py-12 pb-0">
       <section className="grid md:grid-cols-3 gap-8 mb-16">
         <div className="bg-white rounded-lg shadow-lg p-6 text-center">

@@ -42,16 +42,18 @@ async function getForumData(forumId: string) {
 }
 
 interface PageProps {
-  params: { forumId: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ forumId: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function ForumPostsPage({
   params,
   searchParams,
 }: PageProps) {
-  // Access params directly as they're already resolved by Next.js
-  const { forumId } = params;
+  // Await params as it's now a Promise in Next.js 15
+  const { forumId } = await params;
+  // Await searchParams if it exists
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   let initialPosts: Post[] = [];
   
   try {
