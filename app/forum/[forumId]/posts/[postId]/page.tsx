@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/app/firebaseConfig';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { NavigationBar } from '../../../../screens/ForumPage';
-import { useAuth } from '../../../../authContext';
+import { NavigationBar } from '@/app/screens/ForumPage';
+import { useAuth } from '@/app/authContext';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/DropdownMenu';
 
