@@ -1,4 +1,12 @@
 "use client";
+
+// This function tells Next.js which dynamic routes to pre-render at build time
+export async function generateStaticParams() {
+  // Since this is a dynamic route, we need to return an array of possible forumIds
+  // For now, we'll return an empty array which means no pages will be pre-rendered
+  // In a real app, you would fetch the list of forum IDs from your database
+  return [];
+}
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';

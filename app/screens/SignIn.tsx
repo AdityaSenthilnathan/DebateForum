@@ -147,18 +147,13 @@ export default function SignIn() {
             <Button type="submit" className="w-full">Sign In</Button>
           </form>
         </CardContent>
-        {/* <CardFooter className="flex justify-between items-center p-4 bg-gray-50 rounded-b-md">
+        <CardFooter className="flex justify-between items-center p-4 bg-gray-50 rounded-b-md">
           <p className="text-md text-gray-600">
             <button onClick={openSignUpModal} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
               Sign up
             </button>
           </p>
-          <p className="text-md text-gray-600">
-            <button onClick={openResetModal} className="text-blue-600 hover:text-blue-800 hover:underline font-semibold">
-              Forgot Password?
-            </button>
-          </p>
-        </CardFooter> */}
+          </CardFooter>
       </Card>
 
       {/* Conditionally render the SignUpModal */}
