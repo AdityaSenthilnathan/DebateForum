@@ -22,14 +22,21 @@ const convertTimestamps = (data: any): any => {
 };
 
 // This function tells Next.js which forum pages to pre-render at build time.
-// If you know your forum IDs in advance, you can list them here.
-// For dynamic forums, we'll return an empty array to disable static generation.
+// These are the known forum IDs that will be pre-rendered at build time
 export async function generateStaticParams() {
-  // If you have a list of forum IDs you want to pre-render, return them here:
-  // return [{ forumId: 'general' }, { forumId: 'announcements' }];
+  // List of known forum IDs
+  const forumIds = [
+    'Lincoln-Douglas',
+    'Public-Forum',
+    'Policy',
+    'Congress',
+    'World-Schools',
+    'Parliamentary'
+  ];
   
-  // For dynamic forums, return an empty array and let the page handle it at request time
-  return [];
+  return forumIds.map(forumId => ({
+    forumId,
+  }));
 }
 
 // This allows dynamic parameters not explicitly defined in generateStaticParams
