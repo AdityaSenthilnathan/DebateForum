@@ -36,31 +36,98 @@ interface User {
 }
 
 export function NavigationBar({ user, handleSignOut }: { user: User | null, handleSignOut: () => void }) {
-  // Helper to get display name
+  const [isOpen, setIsOpen] = useState(false);
   const displayName = user?.displayName || user?.email || 'Guest';
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if the screen is mobile size
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    // Set initial value
+    checkIfMobile();
+    
+    // Add event listener
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const navLinks = (
+    <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+      <Link href="/" legacyBehavior>
+        <a className="w-full md:w-auto"><Button variant="ghost" className="w-full md:w-auto justify-start">Home</Button></a>
+      </Link>
+      <Link href="/forum" legacyBehavior>
+        <a className="w-full md:w-auto"><Button variant="ghost" className="w-full md:w-auto justify-start">Forums</Button></a>
+      </Link>
+      <Link href="/account" legacyBehavior>
+        <a className="w-full md:w-auto"><Button variant="ghost" className="w-full md:w-auto justify-start">Account</Button></a>
+      </Link>
+      <div className="w-full md:hidden border-t border-gray-200 my-2"></div>
+      <div className="w-full md:w-auto">
+        <Button onClick={handleSignOut} size="lg" className="w-full md:w-auto">
+          Log Out
+        </Button>
+      </div>
+      <span className="hidden md:inline-block px-4">
+        {displayName}
+      </span>
+    </div>
+  );
+
   return (
-    <header className="bg-white shadow">
-      <nav className="mx-auto py-4">
-        <ul className="flex items-center justify-between w-full px-10">
-          <Image src="/favicon.png" alt="Logo" className="w-14 h-14 rounded-md" width={56} height={56} />
-          <div className="flex-1 flex items-center space-x-4 pl-20">
-            <Link href="/" legacyBehavior>
-              <a><Button variant="ghost">Home</Button></a>
-            </Link>
-            <Link href="/forum" legacyBehavior>
-              <a><Button variant="ghost">Forums</Button></a>
-            </Link>
-            <Link href="/account" legacyBehavior>
-              <a><Button variant="ghost">Account</Button></a>
-            </Link>
+    <header className="bg-white shadow sticky top-0 z-50">
+      <nav className="container mx-auto py-4 px-4 md:px-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Image 
+              src="/favicon.png" 
+              alt="Logo" 
+              className="w-12 h-12 md:w-14 md:h-14 rounded-md" 
+              width={56} 
+              height={56} 
+              priority
+            />
           </div>
-          <span className="relative group pr-5">
-            <span>{displayName}</span>
-          </span>
-          <Button onClick={handleSignOut} size="lg">
-            Log Out
-          </Button>
-        </ul>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex flex-1 items-center justify-center px-10">
+            {navLinks}
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <span className="mr-3">{displayName}</span>
+            <button
+              onClick={toggleMenu}
+              className="text-gray-500 hover:text-gray-900 focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              {!isOpen ? (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+        
+        {/* Mobile Navigation */}
+        <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} mt-4`}>
+          {navLinks}
+        </div>
       </nav>
     </header>
   );
