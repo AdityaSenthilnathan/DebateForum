@@ -14,12 +14,19 @@ interface SignUpModalProps {
 const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
 
@@ -81,7 +88,19 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          autoComplete="new-password" // Add autocomplete attribute
+          autoComplete="new-password"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          autoComplete="new-password"
         />
       </div>
       <div className="flex justify-end mt-4">
