@@ -1,5 +1,5 @@
 import { db } from '@/app/firebaseConfig';
-import { collection, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, Timestamp, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import ForumClient, { Post } from './ForumClient';
 
 // Helper function to convert Firestore timestamps to plain objects
@@ -57,22 +57,114 @@ export default async function ForumPostsPage({
   let initialPosts: Post[] = [];
   
   try {
+    console.log(`Fetching posts for forum: ${forumId}`);
     // Fetch initial posts on the server side
     const postsSnapshot = await getForumData(forumId);
-    const postsData = postsSnapshot.docs.map(doc => {
-      const data = doc.data();
-      // Convert all Firestore timestamps to plain objects
-      const convertedData = convertTimestamps(data);
-      return {
-        id: doc.id,
-        ...convertedData,
-        likes: convertedData.likes || [],
-        comments: convertedData.comments || [],
-      };
+    
+    if (!postsSnapshot) {
+      console.error('No posts snapshot returned from getForumData');
+      throw new Error('Failed to fetch forum data');
+    }
+
+    // Define the expected shape of the document data
+    interface PostDocumentData {
+      title: string;
+      content: string;
+      userEmail: string;  // Required by Post interface
+      createdAt: { seconds: number }; // Firestore timestamp format
+      likes: string[];    // Required by Post interface
+      comments: Array<{   // Required by Post interface
+        id: string;
+        content: string;
+        userEmail: string;
+        createdAt: { seconds: number };
+        replies?: Array<{
+          id: string;
+          content: string;
+          userEmail: string;
+          createdAt: { seconds: number };
+        }>;
+      }>;
+    }
+
+    // Define comment interface for type safety
+    interface CommentData {
+      id: string;
+      content: string;
+      userEmail: string;
+      createdAt: { seconds: number };
+      replies?: Array<{
+        id: string;
+        content: string;
+        userEmail: string;
+        createdAt: { seconds: number };
+      }>;
+    }
+
+    // First, process all documents and collect valid posts
+    const processedPosts = postsSnapshot.docs.map((doc: { id: string; exists: () => boolean; data: () => DocumentData }) => {
+      try {
+        if (!doc.exists()) {
+          console.warn(`Document ${doc.id} does not exist`);
+          return null;
+        }
+        
+        const data = doc.data();
+        if (!data) {
+          console.warn(`No data in document ${doc.id}`);
+          return null;
+        }
+        
+        // Type assertion with runtime validation
+        const postData = data as PostDocumentData;
+        if (!postData.title || !postData.content || !postData.userEmail) {
+          console.warn(`Missing required fields in document ${doc.id}`);
+          return null;
+        }
+        
+        // Convert all Firestore timestamps to plain objects
+        const convertedData = convertTimestamps(postData);
+        
+        // Create post object that matches the Post interface
+        const post: Post = {
+          id: doc.id,
+          title: postData.title,
+          content: postData.content,
+          userEmail: postData.userEmail,
+          createdAt: convertedData.createdAt || { seconds: Math.floor(Date.now() / 1000) },
+          likes: Array.isArray(postData.likes) ? postData.likes : [],
+          comments: Array.isArray(postData.comments) 
+            ? (postData.comments as CommentData[]).map((comment: CommentData) => ({
+                id: comment.id,
+                content: comment.content,
+                userEmail: comment.userEmail,
+                createdAt: comment.createdAt,
+                replies: Array.isArray(comment.replies) 
+                  ? comment.replies.map((reply) => ({
+                      id: reply.id,
+                      content: reply.content,
+                      userEmail: reply.userEmail,
+                      createdAt: reply.createdAt
+                    }))
+                  : []
+              }))
+            : []
+        };
+        
+        return post;
+      } catch (docError) {
+        console.error(`Error processing document ${doc.id}:`, docError);
+        return null;
+      }
     });
-    initialPosts = postsData as Post[];
+    
+    // Filter out null values and ensure type safety
+    initialPosts = processedPosts.filter((post): post is Post => post !== null);
+    console.log(`Successfully loaded ${initialPosts.length} posts for forum: ${forumId}`);
   } catch (error) {
-    console.error('Error fetching initial posts:', error);
+    console.error('Error in ForumPostsPage:', error);
+    // Re-throw the error to trigger the error boundary
+    throw new Error(`Failed to load forum: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   return <ForumClient initialPosts={initialPosts} />;
