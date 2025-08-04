@@ -60,7 +60,8 @@ export function NavigationBar({ user, handleSignOut }: { user: User | null, hand
     setIsOpen(!isOpen);
   };
 
-  const navLinks = (
+  // Navigation links for the left side (on desktop)
+  const leftNavLinks = (
     <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
       <Link href="/" legacyBehavior>
         <a className="w-full md:w-auto"><Button variant="ghost" className="w-full md:w-auto justify-start">Home</Button></a>
@@ -71,15 +72,32 @@ export function NavigationBar({ user, handleSignOut }: { user: User | null, hand
       <Link href="/account" legacyBehavior>
         <a className="w-full md:w-auto"><Button variant="ghost" className="w-full md:w-auto justify-start">Account</Button></a>
       </Link>
-      <div className="w-full md:hidden border-t border-gray-200 my-2"></div>
-      <div className="w-full md:w-auto">
-        <Button onClick={handleSignOut} size="lg" className="w-full md:w-auto">
+    </div>
+  );
+
+  // User info and logout button for the right side (on desktop)
+  const rightNavContent = (
+    <div className="hidden md:flex items-center space-x-4">
+      <span className="text-sm font-medium text-gray-700">
+        {displayName}
+      </span>
+      <Button onClick={handleSignOut} variant="outline" size="sm">
+        Log Out
+      </Button>
+    </div>
+  );
+
+  // Mobile menu content
+  const mobileNavContent = (
+    <div className="flex flex-col space-y-4">
+      {leftNavLinks}
+      <div className="w-full border-t border-gray-200 my-2"></div>
+      <div className="flex items-center justify-between w-full">
+        <span className="text-sm font-medium">{displayName}</span>
+        <Button onClick={handleSignOut} size="sm" className="w-auto">
           Log Out
         </Button>
       </div>
-      <span className="hidden md:inline-block px-4">
-        {displayName}
-      </span>
     </div>
   );
 
@@ -99,13 +117,13 @@ export function NavigationBar({ user, handleSignOut }: { user: User | null, hand
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex flex-1 items-center justify-center px-10">
-            {navLinks}
+          <div className="hidden md:flex flex-1 items-center justify-between px-10">
+            {leftNavLinks}
+            {rightNavContent}
           </div>
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <span className="mr-3">{displayName}</span>
             <button
               onClick={toggleMenu}
               className="text-gray-500 hover:text-gray-900 focus:outline-none"
@@ -126,7 +144,7 @@ export function NavigationBar({ user, handleSignOut }: { user: User | null, hand
         
         {/* Mobile Navigation */}
         <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} mt-4`}>
-          {navLinks}
+          {mobileNavContent}
         </div>
       </nav>
     </header>

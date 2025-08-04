@@ -29,20 +29,7 @@ export interface Post {
 }
 
 export default function ForumClient({ initialPosts = [] }: { initialPosts?: Post[] }) {
-  const [user, setUser] = useState<User | null>(null);
-  
-  useEffect(() => {
-    // Initialize Firebase auth
-    const auth = getAuth();
-    
-    // Set up auth state listener
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-    });
-    
-    // Clean up subscription on unmount
-    return () => unsubscribe();
-  }, []);
+  const { currentUser: authUser } = useAuth();
   
   const handleSignOut = async () => {
     try {
@@ -105,7 +92,7 @@ export default function ForumClient({ initialPosts = [] }: { initialPosts?: Post
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <NavigationBar user={user} handleSignOut={handleSignOut} />
+      <NavigationBar user={authUser} handleSignOut={handleSignOut} />
       <main className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Forum: {forumId}</h1>

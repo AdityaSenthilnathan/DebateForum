@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { NavigationBar } from '../screens/ForumPage';
+import { useAuth } from "../authContext";
 
 const FORUMS = [
   "Lincoln-Douglas",
@@ -22,7 +24,7 @@ export default function ForumListPage() {
   const [forumPostCounts, setForumPostCounts] = useState<{ [key: string]: number }>(
     {}
   );
-  const [user, setUser] = useState(null); // Replace with actual user logic if needed
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const fetchForumPostCounts = async () => {
@@ -42,7 +44,7 @@ export default function ForumListPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <NavigationBar user={user} handleSignOut={handleSignOut} />
+      <NavigationBar user={currentUser} handleSignOut={handleSignOut} />
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold mb-6">Debate Forums</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
