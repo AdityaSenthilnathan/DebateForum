@@ -78,6 +78,8 @@ export default function ForumClient({ initialPosts = [] }: { initialPosts?: Post
       setNewPostContent('');
       setShowNewPostForm(false);
       setError('');
+      // Reload the page to show the new post
+      window.location.reload();
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to create post');
